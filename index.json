@@ -1,0 +1,52 @@
+{
+  "repoName": "Foxlations Extensions",
+  "repoVersion": "1.0.0",
+  "generatedAt": "2026-03-26T04:28:17.914978Z",
+  "sources": [
+    {
+      "id": "1stkissmanga-en",
+      "name": "1st Kiss Manga",
+      "baseUrl": "https://1stkissmanga.me",
+      "lang": "en",
+      "framework": "madara",
+      "sourceCodeLanguage": "dart",
+      "version": "0.1.0",
+      "isNsfw": false,
+      "hasCloudflare": false,
+      "dateFormat": "MMMM dd, yyyy",
+      "dateFormatLocale": "en_us",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/foxlations/foxlations-extensions/main/dart/manga/multisrc/madara/madara.dart",
+      "iconUrl": ""
+    },
+    {
+      "id": "flamecomics-en",
+      "name": "Flame Comics",
+      "baseUrl": "https://flamecomics.xyz",
+      "lang": "en",
+      "framework": "mangathemesia",
+      "sourceCodeLanguage": "dart",
+      "version": "0.1.0",
+      "isNsfw": false,
+      "hasCloudflare": false,
+      "dateFormat": "MMMM dd, yyyy",
+      "dateFormatLocale": "en_us",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/foxlations/foxlations-extensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
+      "iconUrl": ""
+    },
+    {
+      "id": "manganato-en",
+      "name": "Manganato",
+      "baseUrl": "https://manganato.com",
+      "lang": "en",
+      "framework": "mangabox",
+      "sourceCodeLanguage": "dart",
+      "version": "0.1.0",
+      "isNsfw": false,
+      "hasCloudflare": false,
+      "dateFormat": "MMM dd,yyyy",
+      "dateFormatLocale": "en_us",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/foxlations/foxlations-extensions/main/dart/manga/multisrc/mangabox/mangabox.dart",
+      "iconUrl": ""
+    }
+  ]
+}

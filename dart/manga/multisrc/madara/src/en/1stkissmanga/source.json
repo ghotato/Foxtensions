@@ -1,0 +1,13 @@
+{
+  "id": "1stkissmanga-en",
+  "name": "1st Kiss Manga",
+  "baseUrl": "https://1stkissmanga.me",
+  "lang": "en",
+  "framework": "madara",
+  "sourceCodeLanguage": "dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": false,
+  "dateFormat": "MMMM dd, yyyy",
+  "dateFormatLocale": "en_us"
+}
