@@ -36,7 +36,7 @@
     {
       "id": "manganato-en",
       "name": "Manganato",
-      "baseUrl": "https://manganato.com",
+      "baseUrl": "https://natomanga.com",
       "lang": "en",
       "framework": "mangabox",
       "sourceCodeLanguage": "dart",
