@@ -5,6 +5,11 @@
 import 'package:foxlations/bridge_lib.dart';
 
 MSource source;
+
+void main(MSource s) {
+  source = s;
+}
+
 String get baseUrl => source.baseUrl;
 String get lang => source.lang;
 
