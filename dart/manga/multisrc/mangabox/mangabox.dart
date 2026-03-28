@@ -107,79 +107,20 @@ Future<MManga> getDetail(String url) async {
   }
 
   // Genres fallback from genre-list div
-  if (manga.genre == null || manga.genre!.isEmpty) {
+  if (manga.genre == null) {
     final genreLinks = doc.select('div.genre-list a, div.genres-content a');
     if (genreLinks.isNotEmpty) {
       manga.genre = genreLinks.map((e) => e.text.trim()).where((e) => e.isNotEmpty).toList();
     }
   }
 
-  // Chapters — try API first, fallback to HTML
-  manga.chapters = await _getChapters(url, doc);
-
-  return manga;
-}
-
-// --- Chapters ---
-
-Future<List<MChapter>> _getChapters(String mangaUrl, Document doc) async {
-  // Try the chapters API (used by newer mangabox sites)
-  final slug = mangaUrl.split('/').where((s) => s.isNotEmpty).last;
-  final apiChapters = await _fetchChaptersFromApi(slug);
-  if (apiChapters.isNotEmpty) return apiChapters;
-
-  // Fallback: parse chapters from the HTML page
-  return _parseChaptersFromHtml(doc);
-}
-
-Future<List<MChapter>> _fetchChaptersFromApi(String slug) async {
-  final client = Client();
+  // Chapters — parse from HTML
   final chapters = <MChapter>[];
+  var chapterEls = doc.select('ul.row-content-chapter li');
+  if (chapterEls.isEmpty) { chapterEls = doc.select('div.chapter-list div.row'); }
+  if (chapterEls.isEmpty) { chapterEls = doc.select('div.manga-info-chapter div.row'); }
 
-  try {
-    int offset = 0;
-    final limit = 1000;
-    bool hasMore = true;
-
-    while (hasMore) {
-      final apiUrl = '$baseUrl/api/manga/$slug/chapters?limit=$limit&offset=$offset';
-      final res = await client.get(apiUrl, headers: {'Referer': baseUrl});
-      if (res.statusCode != 200) break;
-
-      final body = res.body;
-      // Parse chapter entries from API JSON response
-      // API returns array of chapter objects with name, url, date fields
-      final chapterPattern = RegExp(r'"name"\s*:\s*"([^"]*)".*?"url"\s*:\s*"([^"]*)"', dotAll: true);
-      final matches = chapterPattern.allMatches(body);
-
-      int count = 0;
-      for (final m in matches) {
-        final chapter = MChapter();
-        chapter.name = m.group(1);
-        chapter.url = m.group(2);
-        if (chapter.url != null) {
-          chapters.add(chapter);
-          count++;
-        }
-      }
-
-      hasMore = count >= limit;
-      offset += limit;
-    }
-  } catch (_) {}
-
-  return chapters;
-}
-
-List<MChapter> _parseChaptersFromHtml(Document doc) {
-  final chapters = <MChapter>[];
-
-  // Try multiple chapter list selectors
-  var elements = doc.select('ul.row-content-chapter li');
-  if (elements.isEmpty) elements = doc.select('div.chapter-list div.row');
-  if (elements.isEmpty) elements = doc.select('div.manga-info-chapter div.row');
-
-  for (final el in elements) {
+  for (final el in chapterEls) {
     final chapter = MChapter();
     final linkEl = el.selectFirst('a');
     if (linkEl != null) {
@@ -187,19 +128,14 @@ List<MChapter> _parseChaptersFromHtml(Document doc) {
       chapter.url = linkEl.attr('href');
     }
     final dateEl = el.selectFirst('span.chapter-time');
-    if (dateEl == null) {
-      // Fallback: last span in the row
-      final spans = el.select('span');
-      if (spans.length >= 2) {
-        chapter.dateUpload = spans.last.text.trim();
-      }
-    } else {
+    if (dateEl != null) {
       chapter.dateUpload = dateEl.text.trim();
     }
-    if (chapter.url != null) chapters.add(chapter);
+    if (chapter.url != null) { chapters.add(chapter); }
   }
+  manga.chapters = chapters;
 
-  return chapters;
+  return manga;
 }
 
 // --- Page List ---
