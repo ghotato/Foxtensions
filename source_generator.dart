@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 
 const _repoBaseUrl =
-    'https://raw.githubusercontent.com/foxlations/foxlations-extensions/main';
+    'https://raw.githubusercontent.com/ghotato/Foxtensions/main';
 
 void main() async {
   final rootDir = Directory.current;

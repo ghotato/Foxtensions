@@ -1,7 +1,7 @@
 {
   "repoName": "Foxlations Extensions",
   "repoVersion": "1.0.0",
-  "generatedAt": "2026-03-26T04:28:17.914978Z",
+  "generatedAt": "2026-03-28T09:12:15.824644Z",
   "sources": [
     {
       "id": "1stkissmanga-en",
@@ -15,7 +15,7 @@
       "hasCloudflare": false,
       "dateFormat": "MMMM dd, yyyy",
       "dateFormatLocale": "en_us",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/foxlations/foxlations-extensions/main/dart/manga/multisrc/madara/madara.dart",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
       "iconUrl": ""
     },
     {
@@ -30,7 +30,7 @@
       "hasCloudflare": false,
       "dateFormat": "MMMM dd, yyyy",
       "dateFormatLocale": "en_us",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/foxlations/foxlations-extensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
       "iconUrl": ""
     },
     {
@@ -45,7 +45,7 @@
       "hasCloudflare": false,
       "dateFormat": "MMM dd,yyyy",
       "dateFormatLocale": "en_us",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/foxlations/foxlations-extensions/main/dart/manga/multisrc/mangabox/mangabox.dart",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangabox/mangabox.dart",
       "iconUrl": ""
     }
   ]
