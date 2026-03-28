@@ -1,6 +1,6 @@
 // MangaThemesia - Multisrc Framework
+// Based on Tachiyomi/Keiyoushi MangaThemesia implementation
 // Executed by d4rt interpreter at runtime.
-// Receives MSource as first positional argument.
 
 import 'package:foxlations/bridge_lib.dart';
 
@@ -13,30 +13,28 @@ void main(MSource s) {
 String get baseUrl => source.baseUrl;
 String get lang => source.lang;
 
+// Configurable manga directory (some sites use /comics/, /series/, etc)
+String get mangaDir => source.additionalParams ?? 'manga';
+
 bool supportsLatest() => true;
 
-Map<String, String> headers() {
-  return {'Referer': baseUrl};
-}
+Map<String, String> headers() => {'Referer': baseUrl};
+Map<String, String> getHeader(String url) => {'Referer': baseUrl};
 
-Map<String, String> getHeader(String url) {
-  return {'Referer': baseUrl};
-}
+// --- Popular / Latest / Search ---
 
 Future<MPages> getPopular(int page) async {
   final client = Client();
-  final url = '$baseUrl/manga/?page=$page&order=popular';
+  final url = '$baseUrl/$mangaDir/?page=$page&order=popular';
   final res = await client.get(url, headers: {'Referer': baseUrl});
-  final doc = Document(res.body);
-  return _parseMangaList(doc);
+  return _parseMangaList(Document(res.body));
 }
 
 Future<MPages> getLatestUpdates(int page) async {
   final client = Client();
-  final url = '$baseUrl/manga/?page=$page&order=update';
+  final url = '$baseUrl/$mangaDir/?page=$page&order=update';
   final res = await client.get(url, headers: {'Referer': baseUrl});
-  final doc = Document(res.body);
-  return _parseMangaList(doc);
+  return _parseMangaList(Document(res.body));
 }
 
 Future<MPages> search(String query, int page, FilterList filterList) async {
@@ -44,9 +42,10 @@ Future<MPages> search(String query, int page, FilterList filterList) async {
   final encodedQuery = Uri.encodeComponent(query);
   final url = '$baseUrl/page/$page/?s=$encodedQuery';
   final res = await client.get(url, headers: {'Referer': baseUrl});
-  final doc = Document(res.body);
-  return _parseMangaList(doc);
+  return _parseMangaList(Document(res.body));
 }
+
+// --- Manga Detail ---
 
 Future<MManga> getDetail(String url) async {
   final client = Client();
@@ -55,110 +54,129 @@ Future<MManga> getDetail(String url) async {
   final manga = MManga();
 
   // Title
-  final titleEl = doc.selectFirst('h1.entry-title');
-  if (titleEl != null) {
-    manga.name = titleEl.text;
-  }
+  var titleEl = doc.selectFirst('h1.entry-title');
+  if (titleEl == null) titleEl = doc.selectFirst('.ts-breadcrumb li:last-child span');
+  if (titleEl != null) manga.name = titleEl.text.trim();
 
-  // Cover
-  final imgEl = doc.selectFirst('div.thumb img, div.summary_image img');
-  if (imgEl != null) {
-    manga.imageUrl = imgEl.getSrc();
-  }
-
-  // Author
-  final authorEl = doc.selectFirst('span.imptdt:contains(Author) i, div.author-content a');
-  if (authorEl != null) {
-    manga.author = authorEl.text;
-  }
+  // Cover image
+  var imgEl = doc.selectFirst('div.thumb img');
+  if (imgEl == null) imgEl = doc.selectFirst('div[itemprop=image] img');
+  if (imgEl == null) imgEl = doc.selectFirst('div.summary_image img');
+  if (imgEl != null) manga.imageUrl = imgEl.getSrc();
 
   // Description
-  final descEl = doc.selectFirst('div.entry-content[itemprop=description], div[itemprop=description]');
-  if (descEl != null) {
-    manga.description = descEl.text;
+  var descEl = doc.selectFirst('div.entry-content[itemprop=description]');
+  if (descEl == null) descEl = doc.selectFirst('div[itemprop=description]');
+  if (descEl == null) descEl = doc.selectFirst('div.desc');
+  if (descEl != null) manga.description = descEl.text.trim();
+
+  // Author & Artist — parse from info section
+  final infoItems = doc.select('div.tsinfo div.imptdt, span.imptdt');
+  for (final item in infoItems) {
+    final text = item.text.toLowerCase();
+    final value = item.selectFirst('i, a');
+    if (value != null) {
+      if (text.contains('author')) manga.author = value.text.trim();
+      if (text.contains('artist')) manga.artist = value.text.trim();
+      if (text.contains('status')) {
+        final s = value.text.toLowerCase();
+        if (s.contains('ongoing')) manga.status = 0;
+        else if (s.contains('completed')) manga.status = 1;
+        else if (s.contains('hiatus')) manga.status = 2;
+        else if (s.contains('dropped') || s.contains('cancel')) manga.status = 3;
+      }
+    }
   }
 
-  // Status
-  final statusEl = doc.selectFirst('span.imptdt:contains(Status) i, div.tsinfo div.imptdt:nth-child(1) i');
-  if (statusEl != null) {
-    final statusText = statusEl.text.toLowerCase();
-    if (statusText.contains('ongoing')) {
-      manga.status = 0;
-    } else if (statusText.contains('completed')) {
-      manga.status = 1;
-    } else if (statusText.contains('hiatus')) {
-      manga.status = 2;
+  // Status fallback — from post-status section
+  if (manga.status == null) {
+    final statusEl = doc.selectFirst('div.post-status div.summary-content');
+    if (statusEl != null) {
+      final s = statusEl.text.toLowerCase();
+      if (s.contains('ongoing')) manga.status = 0;
+      else if (s.contains('completed')) manga.status = 1;
     }
   }
 
   // Genres
-  final genreElements = doc.select('span.mgen a, div.wd-full span.mgen a');
-  final genres = <String>[];
-  for (final el in genreElements) {
-    genres.add(el.text);
+  var genreEls = doc.select('span.mgen a');
+  if (genreEls.isEmpty) genreEls = doc.select('div.gnr a');
+  if (genreEls.isEmpty) genreEls = doc.select('div.seriestugenre a');
+  if (genreEls.isNotEmpty) {
+    manga.genre = genreEls.map((e) => e.text.trim()).where((e) => e.isNotEmpty).toList();
   }
-  manga.genre = genres;
 
   // Chapters
-  final chapterElements = doc.select('#chapterlist li, ul.clstyle li');
-  final chapters = <MChapter>[];
-  for (final el in chapterElements) {
-    final chapter = MChapter();
-    final linkEl = el.selectFirst('a');
-    if (linkEl != null) {
-      chapter.url = linkEl.attr('href');
-      final nameEl = el.selectFirst('span.chapternum, span.chapter-num');
-      chapter.name = nameEl != null ? nameEl.text : linkEl.text.trim();
-    }
-
-    final dateEl = el.selectFirst('span.chapterdate, span.chapter-date');
-    if (dateEl != null) {
-      chapter.dateUpload = dateEl.text.trim();
-    }
-
-    if (chapter.url != null) {
-      chapters.add(chapter);
-    }
+  final chapterElements = doc.select('#chapterlist li');
+  if (chapterElements.isEmpty) {
+    final altChapters = doc.select('ul.clstyle li');
+    _parseChapters(altChapters, manga);
+  } else {
+    _parseChapters(chapterElements, manga);
   }
-  manga.chapters = chapters;
 
   return manga;
 }
 
+void _parseChapters(List<dynamic> elements, MManga manga) {
+  final chapters = <MChapter>[];
+  for (final el in elements) {
+    final chapter = MChapter();
+    final linkEl = el.selectFirst('a');
+    if (linkEl != null) {
+      chapter.url = linkEl.attr('href');
+      // Chapter name from specific element or link text
+      final nameEl = el.selectFirst('span.chapternum');
+      if (nameEl == null) {
+        final altName = el.selectFirst('span.chapter-num');
+        chapter.name = altName != null ? altName.text.trim() : linkEl.text.trim();
+      } else {
+        chapter.name = nameEl.text.trim();
+      }
+    }
+    final dateEl = el.selectFirst('span.chapterdate');
+    if (dateEl == null) {
+      final altDate = el.selectFirst('span.chapter-date');
+      if (altDate != null) chapter.dateUpload = altDate.text.trim();
+    } else {
+      chapter.dateUpload = dateEl.text.trim();
+    }
+    if (chapter.url != null) chapters.add(chapter);
+  }
+  manga.chapters = chapters;
+}
+
+// --- Page List ---
+
 Future<List<dynamic>> getPageList(String url) async {
   final client = Client();
-  final res = await client.get(url, headers: {'Referer': baseUrl});
-  final doc = Document(res.body);
-
+  final res = await client.get(url, headers: {'Referer': url});
+  final body = res.body;
   final pages = <String>[];
 
-  // Primary: #readerarea img
-  final imgElements = doc.select('#readerarea img');
-  for (final img in imgElements) {
-    final src = img.getSrc();
-    if (src != null && src.isNotEmpty && !src.contains('logo') && !src.contains('icon')) {
-      pages.add(src.trim());
+  // Method 1 (preferred): Extract from ts_reader.run() JSON
+  final tsMatch = RegExp(r'ts_reader\.run\((\{.*?\})\)', dotAll: true).firstMatch(body);
+  if (tsMatch != null) {
+    final jsonStr = tsMatch.group(1)!;
+    final imagesMatch = RegExp(r'"images"\s*:\s*\[(.*?)\]', dotAll: true).firstMatch(jsonStr);
+    if (imagesMatch != null) {
+      final urlPattern = RegExp(r'"(https?://[^"]+)"');
+      for (final m in urlPattern.allMatches(imagesMatch.group(1)!)) {
+        pages.add(m.group(1)!);
+      }
     }
   }
 
-  // Fallback: try to find JSON images in script tags
+  // Method 2: HTML img tags in reader area
   if (pages.isEmpty) {
-    final body = res.body;
-    final tsReaderMatch = RegExp(r'ts_reader\.run\((\{.*?\})\)', dotAll: true);
-    final match = tsReaderMatch.firstMatch(body);
-    if (match != null) {
-      // Parse the JSON for image sources
-      final jsonStr = match.group(1);
-      if (jsonStr != null && jsonStr.contains('"images"')) {
-        final imagesMatch = RegExp(r'"images"\s*:\s*\[(.*?)\]', dotAll: true);
-        final imgMatch = imagesMatch.firstMatch(jsonStr);
-        if (imgMatch != null) {
-          final urlPattern = RegExp(r'"(https?://[^"]+)"');
-          final urls = urlPattern.allMatches(imgMatch.group(1) ?? '');
-          for (final u in urls) {
-            pages.add(u.group(1)!);
-          }
-        }
+    final doc = Document(body);
+    final imgElements = doc.select('#readerarea img');
+    for (final img in imgElements) {
+      final src = img.getSrc();
+      if (src != null && src.isNotEmpty &&
+          !src.contains('logo') && !src.contains('icon') &&
+          !src.contains('avatar') && !src.contains('loading')) {
+        pages.add(src.trim());
       }
     }
   }
@@ -169,17 +187,16 @@ Future<List<dynamic>> getPageList(String url) async {
 List<dynamic> getFilterList() => [];
 List<dynamic> getSourcePreferences() => [];
 
+// --- Helpers ---
+
 MPages _parseMangaList(Document doc) {
   final mangaList = <MManga>[];
 
-  // Try multiple selector patterns
+  // Try multiple selector patterns used by MangaThemesia sites
   var elements = doc.select('div.bsx');
-  if (elements.isEmpty) {
-    elements = doc.select('div.bs');
-  }
-  if (elements.isEmpty) {
-    elements = doc.select('div.listupd .bs');
-  }
+  if (elements.isEmpty) elements = doc.select('div.bs');
+  if (elements.isEmpty) elements = doc.select('div.listupd .bs');
+  if (elements.isEmpty) elements = doc.select('.utao .uta .imgu');
 
   for (final el in elements) {
     final manga = MManga();
@@ -187,29 +204,26 @@ MPages _parseMangaList(Document doc) {
     final linkEl = el.selectFirst('a');
     if (linkEl != null) {
       manga.link = linkEl.attr('href');
+      // Title from title attribute (most reliable)
+      manga.name = linkEl.attr('title') ?? '';
     }
 
-    final titleEl = el.selectFirst('div.tt, a[title]');
-    if (titleEl != null) {
-      manga.name = titleEl.text.trim();
+    // Fallback title from text
+    if (manga.name == null || manga.name!.isEmpty) {
+      final titleEl = el.selectFirst('div.tt, span.ntitle');
+      if (titleEl != null) manga.name = titleEl.text.trim();
     }
     if (manga.name == null || manga.name!.isEmpty) {
       final altTitle = el.selectFirst('a');
-      if (altTitle != null) {
-        manga.name = altTitle.attr('title') ?? altTitle.text.trim();
-      }
+      if (altTitle != null) manga.name = altTitle.text.trim();
     }
 
     final imgEl = el.selectFirst('img');
-    if (imgEl != null) {
-      manga.imageUrl = imgEl.getSrc();
-    }
+    if (imgEl != null) manga.imageUrl = imgEl.getSrc();
 
-    if (manga.name != null && manga.link != null) {
-      mangaList.add(manga);
-    }
+    if (manga.name != null && manga.link != null) mangaList.add(manga);
   }
 
-  final nextPage = doc.selectFirst('a.next.page-numbers, div.hpage a.r');
+  final nextPage = doc.selectFirst('a.next.page-numbers, div.hpage a.r, div.pagination .next');
   return MPages(list: mangaList, hasNextPage: nextPage != null);
 }
