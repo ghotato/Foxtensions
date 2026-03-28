@@ -1,6 +1,8 @@
 // MangaBox (Manganato/Mangakakalot) - Multisrc Framework
 // Executed by d4rt interpreter at runtime.
 
+import 'package:foxlations/bridge_lib.dart';
+
 MSource source;
 String get baseUrl => source.baseUrl;
 String get lang => source.lang;

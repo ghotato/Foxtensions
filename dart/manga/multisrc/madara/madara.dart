@@ -2,6 +2,8 @@
 // This file is executed by the d4rt interpreter at runtime.
 // It receives an MSource object as the first positional argument.
 
+import 'package:foxlations/bridge_lib.dart';
+
 MSource source;
 String get baseUrl => source.baseUrl;
 String get lang => source.lang;
