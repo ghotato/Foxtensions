@@ -114,24 +114,47 @@ Future<MManga> getDetail(String url) async {
     }
   }
 
-  // Chapters — parse from HTML
+  // Chapters — try API first, then fallback to HTML
   final chapters = <MChapter>[];
-  var chapterEls = doc.select('ul.row-content-chapter li');
-  if (chapterEls.isEmpty) { chapterEls = doc.select('div.chapter-list div.row'); }
-  if (chapterEls.isEmpty) { chapterEls = doc.select('div.manga-info-chapter div.row'); }
+  final slug = url.split('/').where((s) => s.isNotEmpty).last;
+  bool usedApi = false;
 
-  for (final el in chapterEls) {
-    final chapter = MChapter();
-    final linkEl = el.selectFirst('a');
-    if (linkEl != null) {
-      chapter.name = linkEl.text.trim();
-      chapter.url = linkEl.attr('href');
+  // Try chapters API (newer mangabox sites)
+  try {
+    final apiUrl = '$baseUrl/api/manga/$slug/chapters?limit=10000&offset=0';
+    final apiRes = await client.get(apiUrl, headers: {'Referer': baseUrl});
+    if (apiRes.statusCode == 200 && apiRes.body.length > 100) {
+      final chPattern = RegExp(r'"name"\s*:\s*"([^"]*)"[^}]*"url"\s*:\s*"([^"]*)"', dotAll: true);
+      final matches = chPattern.allMatches(apiRes.body);
+      for (final m in matches) {
+        final ch = MChapter();
+        ch.name = m.group(1);
+        ch.url = m.group(2);
+        if (ch.url != null) { chapters.add(ch); }
+      }
+      if (chapters.isNotEmpty) { usedApi = true; }
     }
-    final dateEl = el.selectFirst('span.chapter-time');
-    if (dateEl != null) {
-      chapter.dateUpload = dateEl.text.trim();
+  } catch (_) {}
+
+  // Fallback: parse chapters from HTML
+  if (!usedApi) {
+    var chapterEls = doc.select('ul.row-content-chapter li');
+    if (chapterEls.isEmpty) { chapterEls = doc.select('div.chapter-list div.row'); }
+    if (chapterEls.isEmpty) { chapterEls = doc.select('div.manga-info-chapter div.row'); }
+
+    for (final el in chapterEls) {
+      final ch = MChapter();
+      final linkEl = el.selectFirst('a');
+      if (linkEl != null) {
+        ch.name = linkEl.text.trim();
+        ch.url = linkEl.attr('href');
+      }
+      final dateEl = el.selectFirst('span.chapter-time');
+      if (dateEl != null) {
+        ch.dateUpload = dateEl.text.trim();
+      }
+      if (ch.url != null) { chapters.add(ch); }
     }
-    if (chapter.url != null) { chapters.add(chapter); }
   }
   manga.chapters = chapters;
 
