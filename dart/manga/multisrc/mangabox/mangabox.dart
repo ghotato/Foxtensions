@@ -122,8 +122,11 @@ Future<MManga> getDetail(String url) async {
   // Try chapters API (newer mangabox sites)
   try {
     final apiUrl = '$baseUrl/api/manga/$slug/chapters?limit=10000&offset=0';
+    print('[MangaBox] Trying chapters API: $apiUrl');
     final apiRes = await client.get(apiUrl, headers: {'Referer': baseUrl});
+    print('[MangaBox] API response: ${apiRes.statusCode}, body length: ${apiRes.body.length}');
     if (apiRes.statusCode == 200 && apiRes.body.length > 100) {
+      print('[MangaBox] API body preview: ${apiRes.body.substring(0, apiRes.body.length > 300 ? 300 : apiRes.body.length)}');
       final chPattern = RegExp(r'"name"\s*:\s*"([^"]*)"[^}]*"url"\s*:\s*"([^"]*)"', dotAll: true);
       final matches = chPattern.allMatches(apiRes.body);
       for (final m in matches) {
@@ -132,9 +135,12 @@ Future<MManga> getDetail(String url) async {
         ch.url = m.group(2);
         if (ch.url != null) { chapters.add(ch); }
       }
+      print('[MangaBox] API chapters found: ${chapters.length}');
       if (chapters.isNotEmpty) { usedApi = true; }
     }
-  } catch (_) {}
+  } catch (e) {
+    print('[MangaBox] API error: $e');
+  }
 
   // Fallback: parse chapters from HTML
   if (!usedApi) {
