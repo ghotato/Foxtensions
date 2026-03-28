@@ -122,25 +122,22 @@ Future<MManga> getDetail(String url) async {
   // Try chapters API (newer mangabox sites)
   try {
     final apiUrl = '$baseUrl/api/manga/$slug/chapters?limit=10000&offset=0';
-    print('[MangaBox] Trying chapters API: $apiUrl');
     final apiRes = await client.get(apiUrl, headers: {'Referer': baseUrl});
-    print('[MangaBox] API response: ${apiRes.statusCode}, body length: ${apiRes.body.length}');
-    if (apiRes.statusCode == 200 && apiRes.body.length > 100) {
-      print('[MangaBox] API body preview: ${apiRes.body.substring(0, apiRes.body.length > 300 ? 300 : apiRes.body.length)}');
-      final chPattern = RegExp(r'"name"\s*:\s*"([^"]*)"[^}]*"url"\s*:\s*"([^"]*)"', dotAll: true);
+    if (apiRes.statusCode == 200 && apiRes.body.contains('"chapters"')) {
+      // Match: "chapter_name":"Chapter 3862","chapter_slug":"chapter-3862"
+      final chPattern = RegExp(r'"chapter_name"\s*:\s*"([^"]*)"[^}]*"chapter_slug"\s*:\s*"([^"]*)"', dotAll: true);
       final matches = chPattern.allMatches(apiRes.body);
+      // Build manga base URL for chapter links
+      final mangaBase = url.endsWith('/') ? url : '$url/';
       for (final m in matches) {
         final ch = MChapter();
         ch.name = m.group(1);
-        ch.url = m.group(2);
+        ch.url = '$mangaBase${m.group(2)}';
         if (ch.url != null) { chapters.add(ch); }
       }
-      print('[MangaBox] API chapters found: ${chapters.length}');
       if (chapters.isNotEmpty) { usedApi = true; }
     }
-  } catch (e) {
-    print('[MangaBox] API error: $e');
-  }
+  } catch (_) {}
 
   // Fallback: parse chapters from HTML
   if (!usedApi) {
