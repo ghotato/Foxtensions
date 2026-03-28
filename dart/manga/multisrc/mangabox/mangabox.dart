@@ -112,13 +112,14 @@ List<dynamic> getSourcePreferences() => [];
 MPages _parseMangaList(Document doc) {
   final mangaList = <MManga>[];
 
-  var elements = doc.select('div.content-genres-item');
+  var elements = doc.select('div.list-comic-item-wrap');
+  if (elements.isEmpty) elements = doc.select('div.content-genres-item');
   if (elements.isEmpty) elements = doc.select('div.search-story-item');
   if (elements.isEmpty) elements = doc.select('div.story_item');
 
   for (final el in elements) {
     final manga = MManga();
-    final linkEl = el.selectFirst('a.genres-item-img, a.item-img, a');
+    final linkEl = el.selectFirst('a');
     if (linkEl != null) {
       manga.link = linkEl.attr('href');
       manga.name = linkEl.attr('title') ?? '';
@@ -132,6 +133,6 @@ MPages _parseMangaList(Document doc) {
     if (manga.name != null && manga.link != null) mangaList.add(manga);
   }
 
-  final nextPage = doc.selectFirst('a.page-next, a.page-blue.page-last');
+  final nextPage = doc.selectFirst('a.page-next, a.page-blue.page-last, a.active + a');
   return MPages(list: mangaList, hasNextPage: nextPage != null);
 }
