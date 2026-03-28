@@ -81,8 +81,8 @@ Future<MManga> getDetail(String url) async {
       }
       if (labelText.contains('status')) {
         final s = value.text.toLowerCase();
-        if (s.contains('ongoing')) manga.status = 0;
-        else if (s.contains('completed')) manga.status = 1;
+        if (s.contains('ongoing')) { manga.status = 0; }
+        else if (s.contains('completed')) { manga.status = 1; }
       }
       if (labelText.contains('genre')) {
         manga.genre = value.select('a').map((e) => e.text.trim()).where((e) => e.isNotEmpty).toList();
@@ -100,8 +100,8 @@ Future<MManga> getDetail(String url) async {
         if (a != null) manga.author = a.text.trim();
       }
       if (text.contains('status')) {
-        if (text.contains('ongoing')) manga.status = 0;
-        else if (text.contains('completed')) manga.status = 1;
+        if (text.contains('ongoing')) { manga.status = 0; }
+        else if (text.contains('completed')) { manga.status = 1; }
       }
     }
   }

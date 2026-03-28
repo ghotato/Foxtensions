@@ -85,10 +85,10 @@ Future<MManga> getDetail(String url) async {
   final statusItems = doc.select('div.post-status div.summary-content');
   if (statusItems.length >= 2) {
     final statusText = statusItems[1].text.toLowerCase();
-    if (statusText.contains('ongoing')) manga.status = 0;
-    else if (statusText.contains('completed')) manga.status = 1;
-    else if (statusText.contains('hiatus')) manga.status = 2;
-    else if (statusText.contains('cancel')) manga.status = 3;
+    if (statusText.contains('ongoing')) { manga.status = 0; }
+    else if (statusText.contains('completed')) { manga.status = 1; }
+    else if (statusText.contains('hiatus')) { manga.status = 2; }
+    else if (statusText.contains('cancel')) { manga.status = 3; }
   }
 
   // Genres

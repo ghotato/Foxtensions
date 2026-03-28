@@ -80,10 +80,10 @@ Future<MManga> getDetail(String url) async {
       if (text.contains('artist')) manga.artist = value.text.trim();
       if (text.contains('status')) {
         final s = value.text.toLowerCase();
-        if (s.contains('ongoing')) manga.status = 0;
-        else if (s.contains('completed')) manga.status = 1;
-        else if (s.contains('hiatus')) manga.status = 2;
-        else if (s.contains('dropped') || s.contains('cancel')) manga.status = 3;
+        if (s.contains('ongoing')) { manga.status = 0; }
+        else if (s.contains('completed')) { manga.status = 1; }
+        else if (s.contains('hiatus')) { manga.status = 2; }
+        else if (s.contains('dropped') || s.contains('cancel')) { manga.status = 3; }
       }
     }
   }
@@ -93,8 +93,8 @@ Future<MManga> getDetail(String url) async {
     final statusEl = doc.selectFirst('div.post-status div.summary-content');
     if (statusEl != null) {
       final s = statusEl.text.toLowerCase();
-      if (s.contains('ongoing')) manga.status = 0;
-      else if (s.contains('completed')) manga.status = 1;
+      if (s.contains('ongoing')) { manga.status = 0; }
+      else if (s.contains('completed')) { manga.status = 1; }
     }
   }
 
