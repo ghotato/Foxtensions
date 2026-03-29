@@ -61,12 +61,25 @@ Future<MManga> getDetail(String url) async {
   if (imgEl == null) imgEl = doc.selectFirst('div.story-info-left img');
   if (imgEl != null) manga.imageUrl = imgEl.getSrc();
 
-  // Description — multiple layouts
-  var descEl = doc.selectFirst('div#panel-story-info-description');
+  // Description — prioritize contentBox (actual summary), then fallbacks
+  var descEl = doc.selectFirst('div#contentBox');
   if (descEl == null) descEl = doc.selectFirst('div#noidungm');
+  if (descEl == null) descEl = doc.selectFirst('div#panel-story-info-description');
   if (descEl == null) descEl = doc.selectFirst('div.description');
-  if (descEl == null) descEl = doc.selectFirst('div#contentBox');
-  if (descEl != null) manga.description = descEl.text;
+  if (descEl != null) {
+    var desc = descEl.text.trim();
+    // Strip common summary prefixes like "Manga Name summary:"
+    final summaryIdx = desc.indexOf('summary:');
+    if (summaryIdx >= 0 && summaryIdx < 100) {
+      desc = desc.substring(summaryIdx + 'summary:'.length).trim();
+    }
+    // Remove trailing site attribution
+    final mangaUpdatesIdx = desc.lastIndexOf('MangaUpdates');
+    if (mangaUpdatesIdx > 0) desc = desc.substring(0, mangaUpdatesIdx).trim();
+    final mangaBuddyIdx = desc.lastIndexOf('MangaBuddy');
+    if (mangaBuddyIdx > 0) desc = desc.substring(0, mangaBuddyIdx).trim();
+    manga.description = desc;
+  }
 
   // Info from table layout (newer manganato)
   final tableRows = doc.select('table.variations-tableInfo tr');
@@ -124,8 +137,9 @@ Future<MManga> getDetail(String url) async {
     final apiUrl = '$baseUrl/api/manga/$slug/chapters?limit=10000&offset=0';
     final apiRes = await client.get(apiUrl, headers: {'Referer': baseUrl});
     if (apiRes.statusCode == 200 && apiRes.body.contains('"chapters"')) {
-      // Match: "chapter_name":"Chapter 3862","chapter_slug":"chapter-3862"
-      final chPattern = RegExp(r'"chapter_name"\s*:\s*"([^"]*)"[^}]*"chapter_slug"\s*:\s*"([^"]*)"', dotAll: true);
+      // Match: "chapter_name":"Chapter 3862",..."chapter_slug":"chapter-3862"
+      // Use .*? instead of [^}]* to handle nested objects between the fields
+      final chPattern = RegExp(r'"chapter_name"\s*:\s*"([^"]*)".*?"chapter_slug"\s*:\s*"([^"]*)"', dotAll: true);
       final matches = chPattern.allMatches(apiRes.body);
       // Build manga base URL for chapter links
       final mangaBase = url.endsWith('/') ? url : '$url/';

@@ -155,9 +155,11 @@ Future<List<dynamic>> getPageList(String url) async {
   final pages = <String>[];
 
   // Method 1 (preferred): Extract from ts_reader.run() JSON
-  final tsMatch = RegExp(r'ts_reader\.run\((\{.*?\})\)', dotAll: true).firstMatch(body);
+  // Use greedy match with balanced brace tracking via "images" array extraction
+  final tsMatch = RegExp(r'ts_reader\.run\((\{.*\})\)', dotAll: true).firstMatch(body);
   if (tsMatch != null) {
     final jsonStr = tsMatch.group(1)!;
+    // Extract the images array content — match from "images":[ to the closing ]
     final imagesMatch = RegExp(r'"images"\s*:\s*\[(.*?)\]', dotAll: true).firstMatch(jsonStr);
     if (imagesMatch != null) {
       final urlPattern = RegExp(r'"(https?://[^"]+)"');

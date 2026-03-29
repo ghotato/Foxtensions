@@ -15,7 +15,7 @@
       "hasCloudflare": false,
       "dateFormat": "MMMM dd, yyyy",
       "dateFormatLocale": "en_us",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
+      "sourceCodeUrl": "D:/projects/foxlations-extensions/dart/manga/multisrc/madara/madara.dart",
       "iconUrl": ""
     },
     {
@@ -30,7 +30,7 @@
       "hasCloudflare": false,
       "dateFormat": "MMMM dd, yyyy",
       "dateFormatLocale": "en_us",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
+      "sourceCodeUrl": "D:/projects/foxlations-extensions/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
       "iconUrl": ""
     },
     {
@@ -45,7 +45,7 @@
       "hasCloudflare": false,
       "dateFormat": "MMM dd,yyyy",
       "dateFormatLocale": "en_us",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangabox/mangabox.dart",
+      "sourceCodeUrl": "D:/projects/foxlations-extensions/dart/manga/multisrc/mangabox/mangabox.dart",
       "iconUrl": ""
     }
   ]
