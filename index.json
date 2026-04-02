@@ -1,7 +1,7 @@
 {
   "repoName": "Foxlations Extensions",
   "repoVersion": "1.0.0",
-  "generatedAt": "2026-03-28T09:12:15.824644Z",
+  "generatedAt": "2026-04-02T18:27:15.637033Z",
   "sources": [
     {
       "id": "1stkissmanga-en",
@@ -19,9 +19,40 @@
       "iconUrl": ""
     },
     {
+      "id": "asurascans-en",
+      "name": "Asura Scans",
+      "baseUrl": "https://asuracomic.net",
+      "lang": "en",
+      "framework": "mangathemesia",
+      "sourceCodeLanguage": "dart",
+      "version": "0.1.0",
+      "isNsfw": false,
+      "hasCloudflare": true,
+      "dateFormat": "MMMM dd, yyyy",
+      "dateFormatLocale": "en_us",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
+      "iconUrl": ""
+    },
+    {
       "id": "flamecomics-en",
       "name": "Flame Comics",
       "baseUrl": "https://flamecomics.xyz",
+      "lang": "en",
+      "framework": "custom",
+      "sourceCodeLanguage": "dart",
+      "sourceCodeFile": "flamecomics.dart",
+      "version": "0.1.0",
+      "isNsfw": false,
+      "hasCloudflare": true,
+      "dateFormat": "",
+      "dateFormatLocale": "",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/en/flamecomics/flamecomics.dart",
+      "iconUrl": ""
+    },
+    {
+      "id": "luminousscans-en",
+      "name": "Luminous Scans",
+      "baseUrl": "https://luminousscans.net",
       "lang": "en",
       "framework": "mangathemesia",
       "sourceCodeLanguage": "dart",
@@ -31,6 +62,51 @@
       "dateFormat": "MMMM dd, yyyy",
       "dateFormatLocale": "en_us",
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
+      "iconUrl": ""
+    },
+    {
+      "id": "mangatx-en",
+      "name": "MangaTX",
+      "baseUrl": "https://mangatx.to",
+      "lang": "en",
+      "framework": "madara",
+      "sourceCodeLanguage": "dart",
+      "version": "0.1.0",
+      "isNsfw": false,
+      "hasCloudflare": false,
+      "dateFormat": "MMMM dd, yyyy",
+      "dateFormatLocale": "en_us",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
+      "iconUrl": ""
+    },
+    {
+      "id": "mangabat-en",
+      "name": "Mangabat",
+      "baseUrl": "https://h.mangabat.com",
+      "lang": "en",
+      "framework": "mangabox",
+      "sourceCodeLanguage": "dart",
+      "version": "0.1.0",
+      "isNsfw": false,
+      "hasCloudflare": false,
+      "dateFormat": "MMM dd,yyyy",
+      "dateFormatLocale": "en_us",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangabox/mangabox.dart",
+      "iconUrl": ""
+    },
+    {
+      "id": "mangakakalot-en",
+      "name": "Mangakakalot",
+      "baseUrl": "https://mangakakalot.com",
+      "lang": "en",
+      "framework": "mangabox",
+      "sourceCodeLanguage": "dart",
+      "version": "0.1.0",
+      "isNsfw": false,
+      "hasCloudflare": false,
+      "dateFormat": "MMM dd,yyyy",
+      "dateFormatLocale": "en_us",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangabox/mangabox.dart",
       "iconUrl": ""
     },
     {
@@ -46,6 +122,21 @@
       "dateFormat": "MMM dd,yyyy",
       "dateFormatLocale": "en_us",
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangabox/mangabox.dart",
+      "iconUrl": ""
+    },
+    {
+      "id": "manhuaplus-en",
+      "name": "ManhuaPlus",
+      "baseUrl": "https://manhuaplus.org",
+      "lang": "en",
+      "framework": "madara",
+      "sourceCodeLanguage": "dart",
+      "version": "0.1.0",
+      "isNsfw": false,
+      "hasCloudflare": false,
+      "dateFormat": "MMMM dd, yyyy",
+      "dateFormatLocale": "en_us",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
       "iconUrl": ""
     }
   ]

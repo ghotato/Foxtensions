@@ -122,7 +122,7 @@ Future<List<MChapter>> _getChapterList(String mangaUrl, String pageHtml) async {
         'X-Requested-With': 'XMLHttpRequest',
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      '',
+      body: '',
     );
     if (res.statusCode == 200 && res.body.isNotEmpty) {
       chapterHtml = res.body;
@@ -144,7 +144,7 @@ Future<List<MChapter>> _getChapterList(String mangaUrl, String pageHtml) async {
             'X-Requested-With': 'XMLHttpRequest',
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-          'action=manga_get_chapters&manga=$mangaId',
+          body: 'action=manga_get_chapters&manga=$mangaId',
         );
         if (res.statusCode == 200 && res.body.isNotEmpty) {
           chapterHtml = res.body;

@@ -1,0 +1,13 @@
+{
+  "id": "manhuaplus-en",
+  "name": "ManhuaPlus",
+  "baseUrl": "https://manhuaplus.org",
+  "lang": "en",
+  "framework": "madara",
+  "sourceCodeLanguage": "dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": false,
+  "dateFormat": "MMMM dd, yyyy",
+  "dateFormatLocale": "en_us"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "mangakakalot-en",
+  "name": "Mangakakalot",
+  "baseUrl": "https://mangakakalot.com",
+  "lang": "en",
+  "framework": "mangabox",
+  "sourceCodeLanguage": "dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": false,
+  "dateFormat": "MMM dd,yyyy",
+  "dateFormatLocale": "en_us"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "flamecomics-en",
+  "name": "Flame Comics",
+  "baseUrl": "https://flamecomics.xyz",
+  "lang": "en",
+  "framework": "custom",
+  "sourceCodeLanguage": "dart",
+  "sourceCodeFile": "flamecomics.dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": true,
+  "dateFormat": "",
+  "dateFormatLocale": ""
+}

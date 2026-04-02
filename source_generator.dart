@@ -44,6 +44,37 @@ void main() async {
     }
   }
 
+  // Scan dart/manga/src/*/* for custom Dart source definitions
+  final dartCustomDir = Directory('${rootDir.path}/dart/manga/src');
+  if (await dartCustomDir.exists()) {
+    await for (final entity in dartCustomDir.list(recursive: true)) {
+      if (entity is File && entity.path.endsWith('source.json')) {
+        try {
+          final content = await entity.readAsString();
+          final json = jsonDecode(content) as Map<String, dynamic>;
+
+          // Build sourceCodeUrl for the custom Dart file
+          final relPath = entity.path
+              .replaceAll('\\', '/')
+              .split('dart/manga/src/')
+              .last;
+          final dir = relPath.substring(0, relPath.lastIndexOf('/'));
+          final dartFile = json['sourceCodeFile'] ?? '${json['id']}.dart';
+          json['sourceCodeUrl'] =
+              '$_repoBaseUrl/dart/manga/src/$dir/$dartFile';
+          json['framework'] = json['framework'] ?? 'custom';
+          json['sourceCodeLanguage'] = 'dart';
+          json['iconUrl'] = json['iconUrl'] ?? '';
+
+          sources.add(json);
+          print('  + ${json['name']} (${json['id']}) [dart/custom]');
+        } catch (e) {
+          print('  ! Error parsing ${entity.path}: $e');
+        }
+      }
+    }
+  }
+
   // Scan javascript/manga/src/*/*.json for JS source definitions
   final jsDir = Directory('${rootDir.path}/javascript/manga/src');
   if (await jsDir.exists()) {

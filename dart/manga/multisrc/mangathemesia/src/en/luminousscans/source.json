@@ -1,0 +1,13 @@
+{
+  "id": "luminousscans-en",
+  "name": "Luminous Scans",
+  "baseUrl": "https://luminousscans.net",
+  "lang": "en",
+  "framework": "mangathemesia",
+  "sourceCodeLanguage": "dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": false,
+  "dateFormat": "MMMM dd, yyyy",
+  "dateFormatLocale": "en_us"
+}
