@@ -13,6 +13,10 @@ void main(MSource s) {
 String get baseUrl => source.baseUrl;
 String get lang => source.lang;
 
+int _page = 1;
+String _query = '';
+String _url = '';
+
 // Configurable manga directory (some sites use /comics/, /series/, etc)
 String get mangaDir => source.additionalParams ?? 'manga';
 
@@ -25,22 +29,21 @@ Map<String, String> getHeader(String url) => {'Referer': baseUrl};
 
 Future<MPages> getPopular(int page) async {
   final client = Client();
-  final url = baseUrl + '/' + mangaDir + '/?page=' + page.toString() + '&order=popular';
+  final url = baseUrl + '/' + mangaDir + '/?page=' + _page.toString() + '&order=popular';
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
 
 Future<MPages> getLatestUpdates(int page) async {
   final client = Client();
-  final url = baseUrl + '/' + mangaDir + '/?page=' + page.toString() + '&order=update';
+  final url = baseUrl + '/' + mangaDir + '/?page=' + _page.toString() + '&order=update';
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
 
 Future<MPages> search(String query, int page, FilterList filterList) async {
   final client = Client();
-  final encodedQuery = Uri.encodeComponent(query);
-  final url = baseUrl + '/page/' + page.toString() + '/?s=' + encodedQuery;
+  final url = baseUrl + '/page/' + _page.toString() + '/?s=' + Uri.encodeComponent(_query);
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
@@ -49,7 +52,7 @@ Future<MPages> search(String query, int page, FilterList filterList) async {
 
 Future<MManga> getDetail(String url) async {
   final client = Client();
-  final res = await client.get(url, headers: {'Referer': baseUrl});
+  final res = await client.get(_url, headers: {'Referer': baseUrl});
   final doc = Document(res.body);
   final manga = MManga();
 
@@ -150,7 +153,7 @@ void _parseChapters(List<dynamic> elements, MManga manga) {
 
 Future<List<dynamic>> getPageList(String url) async {
   final client = Client();
-  final res = await client.get(url, headers: {'Referer': url});
+  final res = await client.get(_url, headers: {'Referer': _url});
   final body = res.body;
   final pages = <String>[];
 

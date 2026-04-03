@@ -12,6 +12,10 @@ void main(MSource s) {
 
 String get baseUrl => source.baseUrl;
 String get lang => source.lang;
+
+int _page = 1;
+String _query = '';
+String _url = '';
 String get dateFormat => source.dateFormat ?? 'MMMM dd, yyyy';
 String get dateFormatLocale => source.dateFormatLocale ?? 'en_us';
 
@@ -27,22 +31,21 @@ Map<String, String> getHeader(String url) => {'Referer': baseUrl};
 
 Future<MPages> getPopular(int page) async {
   final client = Client();
-  final url = baseUrl + '/' + mangaPath + '/page/' + page.toString() + '/?m_orderby=views';
+  final url = baseUrl + '/' + mangaPath + '/page/' + _page.toString() + '/?m_orderby=views';
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
 
 Future<MPages> getLatestUpdates(int page) async {
   final client = Client();
-  final url = baseUrl + '/' + mangaPath + '/page/' + page.toString() + '/?m_orderby=latest';
+  final url = baseUrl + '/' + mangaPath + '/page/' + _page.toString() + '/?m_orderby=latest';
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
 
 Future<MPages> search(String query, int page, FilterList filterList) async {
   final client = Client();
-  final encodedQuery = Uri.encodeComponent(query);
-  final url = baseUrl + '/page/' + page.toString() + '/?s=' + encodedQuery + '&post_type=wp-manga';
+  final url = baseUrl + '/page/' + _page.toString() + '/?s=' + Uri.encodeComponent(_query) + '&post_type=wp-manga';
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseSearchResults(Document(res.body));
 }
@@ -51,7 +54,7 @@ Future<MPages> search(String query, int page, FilterList filterList) async {
 
 Future<MManga> getDetail(String url) async {
   final client = Client();
-  final res = await client.get(url, headers: {'Referer': baseUrl});
+  final res = await client.get(_url, headers: {'Referer': baseUrl});
   final doc = Document(res.body);
   final manga = MManga();
 
@@ -98,7 +101,7 @@ Future<MManga> getDetail(String url) async {
   }
 
   // Chapters — AJAX fetch
-  manga.chapters = await _getChapterList(url, res.body);
+  manga.chapters = await _getChapterList(_url, res.body);
 
   return manga;
 }
@@ -190,8 +193,7 @@ List<MChapter> _parseChapters(String html) {
 
 Future<List<dynamic>> getPageList(String url) async {
   final client = Client();
-  // Append ?style=list for single-page chapter view
-  final fetchUrl = url.contains('?') ? '$url&style=list' : '$url?style=list';
+  final fetchUrl = _url.contains('?') ? _url + '&style=list' : _url + '?style=list';
   final res = await client.get(fetchUrl, headers: {'Referer': baseUrl});
   final doc = Document(res.body);
   final pages = <String>[];

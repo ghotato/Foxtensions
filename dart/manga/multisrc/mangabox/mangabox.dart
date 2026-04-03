@@ -13,6 +13,11 @@ void main(MSource s) {
 String get baseUrl => source.baseUrl;
 String get lang => source.lang;
 
+// Mutable globals set by the service before each call
+int _page = 1;
+String _query = '';
+String _url = '';
+
 bool supportsLatest() => true;
 
 Map<String, String> headers() => {'Referer': baseUrl};
@@ -22,22 +27,22 @@ Map<String, String> getHeader(String url) => {'Referer': baseUrl};
 
 Future<MPages> getPopular(int page) async {
   final client = Client();
-  final url = baseUrl + '/manga-list/hot-manga?page=' + page.toString();
+  final url = baseUrl + '/manga-list/hot-manga?page=' + _page.toString();
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
 
 Future<MPages> getLatestUpdates(int page) async {
   final client = Client();
-  final url = baseUrl + '/manga-list/latest-manga?page=' + page.toString();
+  final url = baseUrl + '/manga-list/latest-manga?page=' + _page.toString();
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
 
 Future<MPages> search(String query, int page, FilterList filterList) async {
   final client = Client();
-  final normalized = query.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
-  final url = baseUrl + '/search/story/' + normalized + '?page=' + page.toString();
+  final normalized = _query.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
+  final url = baseUrl + '/search/story/' + normalized + '?page=' + _page.toString();
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
@@ -46,7 +51,7 @@ Future<MPages> search(String query, int page, FilterList filterList) async {
 
 Future<MManga> getDetail(String url) async {
   final client = Client();
-  final res = await client.get(url, headers: {'Referer': baseUrl});
+  final res = await client.get(_url, headers: {'Referer': baseUrl});
   final doc = Document(res.body);
   final manga = MManga();
 
@@ -129,7 +134,7 @@ Future<MManga> getDetail(String url) async {
 
   // Chapters — try API first, then fallback to HTML
   final chapters = <MChapter>[];
-  final slug = url.split('/').where((s) => s.isNotEmpty).last;
+  final slug = _url.split('/').where((s) => s.isNotEmpty).last;
   bool usedApi = false;
 
   // Try chapters API (newer mangabox sites)
@@ -142,7 +147,7 @@ Future<MManga> getDetail(String url) async {
       final chPattern = RegExp(r'"chapter_name"\s*:\s*"([^"]*)".*?"chapter_slug"\s*:\s*"([^"]*)"', dotAll: true);
       final matches = chPattern.allMatches(apiRes.body);
       // Build manga base URL for chapter links
-      final mangaBase = url.endsWith('/') ? url : '$url/';
+      final mangaBase = _url.endsWith('/') ? _url : _url + '/';
       for (final m in matches) {
         final ch = MChapter();
         ch.name = m.group(1);
@@ -182,7 +187,7 @@ Future<MManga> getDetail(String url) async {
 
 Future<List<dynamic>> getPageList(String url) async {
   final client = Client();
-  final res = await client.get(url, headers: {'Referer': baseUrl});
+  final res = await client.get(_url, headers: {'Referer': baseUrl});
   final body = res.body;
   final pages = <String>[];
 

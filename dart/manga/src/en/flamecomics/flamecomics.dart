@@ -13,6 +13,10 @@ void main(MSource s) {
 String get baseUrl => source.baseUrl;
 String get cdnUrl => 'https://cdn.flamecomics.xyz';
 
+int _page = 1;
+String _query = '';
+String _url = '';
+
 bool supportsLatest() => true;
 
 Map<String, String> headers() => {'Referer': '$baseUrl/'};
@@ -54,7 +58,7 @@ Future<MPages> getPopular(int page) async {
   if (_buildId.isEmpty) return MPages(list: <MManga>[], hasNextPage: false);
 
   final client = Client();
-  final url = _apiUrl('browse.json?page=' + page.toString());
+  final url = _apiUrl('browse.json?page=' + _page.toString());
   final res = await client.get(url, headers: {'Referer': baseUrl + '/'});
   return _parseBrowse(res.body);
 }
@@ -78,8 +82,8 @@ Future<MPages> search(String query, int page, FilterList filterList) async {
   if (_buildId.isEmpty) return MPages(list: <MManga>[], hasNextPage: false);
 
   final client = Client();
-  final q = Uri.encodeComponent(query);
-  final url = _apiUrl('browse.json?search=' + q + '&page=' + page.toString());
+  final q = Uri.encodeComponent(_query);
+  final url = _apiUrl('browse.json?search=' + q + '&page=' + _page.toString());
   final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
   return _parseBrowse(res.body);
 }
@@ -93,7 +97,7 @@ Future<MManga> getDetail(String url) async {
 
   // url is like https://flamecomics.xyz/series/123
   // We need the series ID
-  final seriesId = url.split('/').where((s) => s.isNotEmpty).last;
+  final seriesId = _url.split('/').where((s) => s.isNotEmpty).last;
 
   final apiUrl = _apiUrl('series/$seriesId.json');
   final res = await client.get(apiUrl, headers: {'Referer': '$baseUrl/'});
@@ -194,7 +198,7 @@ Future<List<dynamic>> getPageList(String url) async {
   final pages = <String>[];
 
   // url is like https://flamecomics.xyz/series/123/token
-  final parts = url.replaceAll(baseUrl, '').split('/').where((s) => s.isNotEmpty).toList();
+  final parts = _url.replaceAll(baseUrl, '').split('/').where((s) => s.isNotEmpty).toList();
   if (parts.length < 3) return pages;
   final seriesId = parts[1];
   final token = parts[2];
