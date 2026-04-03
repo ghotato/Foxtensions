@@ -260,6 +260,9 @@ MPages _parseMangaList(Document doc) {
     if (manga.name != null && manga.link != null) mangaList.add(manga);
   }
 
-  final nextPage = doc.selectFirst('a.page-next, a.page-blue.page-last, a.active + a');
-  return MPages(list: mangaList, hasNextPage: nextPage != null);
+  // Check for pagination links
+  var nextPage = doc.selectFirst('a.page-next, a.page-blue.page-last, a.active + a');
+  // Fallback: if we got a full page of results, assume there's more
+  final hasNext = nextPage != null || mangaList.length >= 20;
+  return MPages(list: mangaList, hasNextPage: hasNext);
 }

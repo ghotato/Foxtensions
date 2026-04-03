@@ -265,8 +265,9 @@ MPages _parseMangaList(Document doc) {
     if (manga.name != null && manga.link != null) mangaList.add(manga);
   }
 
-  final nextPage = doc.selectFirst('div.nav-previous a, a.nextpostslink, a.last');
-  return MPages(list: mangaList, hasNextPage: nextPage != null);
+  var nextPage = doc.selectFirst('div.nav-previous a, a.nextpostslink, a.last');
+  final hasNext = nextPage != null || mangaList.length >= 20;
+  return MPages(list: mangaList, hasNextPage: hasNext);
 }
 
 MPages _parseSearchResults(Document doc) {
@@ -289,6 +290,7 @@ MPages _parseSearchResults(Document doc) {
     if (manga.name != null && manga.link != null) mangaList.add(manga);
   }
 
-  final nextPage = doc.selectFirst('div.nav-previous a, a.nextpostslink');
-  return MPages(list: mangaList, hasNextPage: nextPage != null);
+  var nextPage = doc.selectFirst('div.nav-previous a, a.nextpostslink');
+  final hasNext = nextPage != null || mangaList.length >= 20;
+  return MPages(list: mangaList, hasNextPage: hasNext);
 }

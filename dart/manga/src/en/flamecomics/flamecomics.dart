@@ -27,10 +27,18 @@ Future<String> _getBuildId() async {
   if (_buildId.isNotEmpty) return _buildId;
   final client = Client();
   final res = await client.get(baseUrl, headers: {'Referer': '$baseUrl/'});
+  print('[FlameComics] getBuildId response length: ${res.body.length}, status: ${res.statusCode}');
+  print('[FlameComics] body contains __NEXT_DATA__: ${res.body.contains('__NEXT_DATA__')}');
   // Extract buildId from __NEXT_DATA__ JSON
   final match = RegExp(r'"buildId"\s*:\s*"([^"]+)"').firstMatch(res.body);
   if (match != null) {
     _buildId = match.group(1)!;
+    print('[FlameComics] Found buildId: $_buildId');
+  } else {
+    print('[FlameComics] buildId NOT found in response');
+    // Show first 500 chars for debugging
+    final preview = res.body.length > 500 ? res.body.substring(0, 500) : res.body;
+    print('[FlameComics] Body preview: $preview');
   }
   return _buildId;
 }
@@ -228,43 +236,23 @@ List<dynamic> getSourcePreferences() => [];
 MPages _parseBrowse(String body) {
   final mangaList = <MManga>[];
 
-  // Extract manga entries from browse JSON
-  // Look for series objects with id, title, cover
-  final seriesPattern = RegExp(
-    r'"id"\s*:\s*(\d+).*?"title"\s*:\s*"([^"]*)".*?"cover"\s*:\s*"([^"]*)"',
-    dotAll: true,
-  );
+  // JSON structure: {"pageProps":{"series":[{"series_id":99,"title":"...","cover":"thumbnail.png",...}]}}
+  // Match each series object by finding series_id and title pairs
+  final pattern = RegExp(r'"series_id"\s*:\s*(\d+)\s*,\s*"title"\s*:\s*"([^"]*)"', dotAll: true);
 
-  // Find the series/data array
-  final dataMatch = RegExp(r'"(?:series|data|results)"\s*:\s*\[(.*?)\]', dotAll: true).firstMatch(body);
-  if (dataMatch != null) {
-    final dataStr = dataMatch.group(1)!;
-    final entries = RegExp(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}').allMatches(dataStr);
-
-    for (final entry in entries) {
-      final str = entry.group(0)!;
-      final manga = MManga();
-
-      final idMatch = RegExp(r'"id"\s*:\s*(\d+)').firstMatch(str);
-      final titleMatch = RegExp(r'"title"\s*:\s*"([^"]*)"').firstMatch(str);
-      final coverMatch = RegExp(r'"cover"\s*:\s*"([^"]*)"').firstMatch(str);
-
-      if (idMatch != null && titleMatch != null) {
-        manga.name = titleMatch.group(1);
-        manga.link = '$baseUrl/series/${idMatch.group(1)}';
-        if (coverMatch != null) {
-          final cover = coverMatch.group(1)!;
-          manga.imageUrl = cover.startsWith('http') ? cover : '$cdnUrl/uploads/images/series/$cover';
-        }
-        mangaList.add(manga);
-      }
-    }
+  for (final m in pattern.allMatches(body)) {
+    final seriesId = m.group(1)!;
+    final title = m.group(2)!;
+    final manga = MManga();
+    manga.name = title;
+    manga.link = '$baseUrl/series/$seriesId';
+    manga.imageUrl = '$cdnUrl/uploads/images/series/$seriesId/thumbnail.png';
+    mangaList.add(manga);
   }
 
   return MPages(list: mangaList, hasNextPage: mangaList.length >= 20);
 }
 
 MPages _parseIndex(String body) {
-  // Index page may have a different structure — reuse browse parser
   return _parseBrowse(body);
 }
