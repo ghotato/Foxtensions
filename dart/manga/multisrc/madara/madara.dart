@@ -27,14 +27,14 @@ Map<String, String> getHeader(String url) => {'Referer': baseUrl};
 
 Future<MPages> getPopular(int page) async {
   final client = Client();
-  final url = '$baseUrl/$mangaPath/page/$page/?m_orderby=views';
+  final url = baseUrl + '/' + mangaPath + '/page/' + page.toString() + '/?m_orderby=views';
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
 
 Future<MPages> getLatestUpdates(int page) async {
   final client = Client();
-  final url = '$baseUrl/$mangaPath/page/$page/?m_orderby=latest';
+  final url = baseUrl + '/' + mangaPath + '/page/' + page.toString() + '/?m_orderby=latest';
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
@@ -42,7 +42,7 @@ Future<MPages> getLatestUpdates(int page) async {
 Future<MPages> search(String query, int page, FilterList filterList) async {
   final client = Client();
   final encodedQuery = Uri.encodeComponent(query);
-  final url = '$baseUrl/page/$page/?s=$encodedQuery&post_type=wp-manga';
+  final url = baseUrl + '/page/' + page.toString() + '/?s=' + encodedQuery + '&post_type=wp-manga';
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseSearchResults(Document(res.body));
 }

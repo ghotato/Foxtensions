@@ -22,14 +22,14 @@ Map<String, String> getHeader(String url) => {'Referer': baseUrl};
 
 Future<MPages> getPopular(int page) async {
   final client = Client();
-  final url = '$baseUrl/manga-list/hot-manga?page=$page';
+  final url = baseUrl + '/manga-list/hot-manga?page=' + page.toString();
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
 
 Future<MPages> getLatestUpdates(int page) async {
   final client = Client();
-  final url = '$baseUrl/manga-list/latest-manga?page=$page';
+  final url = baseUrl + '/manga-list/latest-manga?page=' + page.toString();
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }
@@ -37,7 +37,7 @@ Future<MPages> getLatestUpdates(int page) async {
 Future<MPages> search(String query, int page, FilterList filterList) async {
   final client = Client();
   final normalized = query.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
-  final url = '$baseUrl/search/story/$normalized?page=$page';
+  final url = baseUrl + '/search/story/' + normalized + '?page=' + page.toString();
   final res = await client.get(url, headers: {'Referer': baseUrl});
   return _parseMangaList(Document(res.body));
 }

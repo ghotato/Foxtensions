@@ -54,8 +54,8 @@ Future<MPages> getPopular(int page) async {
   if (_buildId.isEmpty) return MPages(list: <MManga>[], hasNextPage: false);
 
   final client = Client();
-  final url = _apiUrl('browse.json?page=$page');
-  final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
+  final url = _apiUrl('browse.json?page=' + page.toString());
+  final res = await client.get(url, headers: {'Referer': baseUrl + '/'});
   return _parseBrowse(res.body);
 }
 
@@ -66,9 +66,8 @@ Future<MPages> getLatestUpdates(int page) async {
   if (_buildId.isEmpty) return MPages(list: <MManga>[], hasNextPage: false);
 
   final client = Client();
-  // The index page has latest updates
   final url = _apiUrl('index.json');
-  final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
+  final res = await client.get(url, headers: {'Referer': baseUrl + '/'});
   return _parseIndex(res.body);
 }
 
@@ -80,7 +79,7 @@ Future<MPages> search(String query, int page, FilterList filterList) async {
 
   final client = Client();
   final q = Uri.encodeComponent(query);
-  final url = _apiUrl('browse.json?search=$q&page=$page');
+  final url = _apiUrl('browse.json?search=' + q + '&page=' + page.toString());
   final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
   return _parseBrowse(res.body);
 }
