@@ -27,7 +27,7 @@ class Webtoons extends MProvider {
 
   @override
   Future<MPages> getPopular(int page) async {
-    final url = '$baseUrl/$_langPath/top';
+    final url = '$baseUrl/$_langPath/ranking/trending';
     final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
     return _parseList(res.body);
   }
@@ -126,11 +126,16 @@ class Webtoons extends MProvider {
     final doc = Document(body);
     final mangaList = <MManga>[];
 
-    final elements = doc.select('ul.card_lst li a, div.card_item a, ul.lst_type1 li a');
+    // Webtoons ranking/top page
+    var elements = doc.select('ul.webtoon_list li a.link');
+    // Fallback: card list, daily schedule
+    if (elements.isEmpty) elements = doc.select('ul.card_lst li a');
+    if (elements.isEmpty) elements = doc.select('div.daily_card a, ul.daily_section li a');
+
     for (final el in elements) {
       final manga = MManga();
       manga.link = el.attr('href');
-      final titleEl = el.selectFirst('p.subj, span.subj');
+      final titleEl = el.selectFirst('strong.title, p.subj, span.subj');
       if (titleEl != null) manga.name = titleEl.text.trim();
       final imgEl = el.selectFirst('img');
       if (imgEl != null) manga.imageUrl = imgEl.getSrc();

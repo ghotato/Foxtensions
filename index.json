@@ -1,27 +1,26 @@
 {
   "repoName": "Foxlations Extensions",
   "repoVersion": "1.0.0",
-  "generatedAt": "2026-04-04T19:05:22.955489Z",
+  "generatedAt": "2026-04-04T20:07:16.564501Z",
   "sources": [
     {
       "id": "asurascans-en",
       "name": "Asura Scans",
-      "baseUrl": "https://asuracomic.net",
+      "baseUrl": "https://asurascans.com",
       "lang": "en",
-      "framework": "mangathemesia",
+      "framework": "custom",
       "sourceCodeLanguage": "dart",
+      "sourceCodeFile": "asurascans.dart",
       "version": "0.1.0",
       "isNsfw": false,
       "hasCloudflare": true,
-      "dateFormat": "MMMM dd, yyyy",
-      "dateFormatLocale": "en_us",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
+      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/en/asurascans/asurascans.dart",
       "iconUrl": ""
     },
     {
       "id": "coomer-en",
       "name": "Coomer",
-      "baseUrl": "https://coomer.su",
+      "baseUrl": "https://coomer.st",
       "lang": "en",
       "framework": "custom",
       "sourceCodeLanguage": "dart",
@@ -65,7 +64,7 @@
     {
       "id": "kemono-en",
       "name": "Kemono",
-      "baseUrl": "https://kemono.su",
+      "baseUrl": "https://kemono.cr",
       "lang": "en",
       "framework": "custom",
       "sourceCodeLanguage": "dart",
@@ -86,7 +85,7 @@
       "sourceCodeFile": "luscious.dart",
       "version": "0.1.0",
       "isNsfw": true,
-      "hasCloudflare": false,
+      "hasCloudflare": true,
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/en/luscious/luscious.dart",
       "iconUrl": ""
     },

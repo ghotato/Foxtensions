@@ -1,7 +1,7 @@
 {
   "id": "kemono-en",
   "name": "Kemono",
-  "baseUrl": "https://kemono.su",
+  "baseUrl": "https://kemono.cr",
   "lang": "en",
   "framework": "custom",
   "sourceCodeLanguage": "dart",

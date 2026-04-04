@@ -101,7 +101,10 @@ class MangaGeko extends MProvider {
   MPages _parseList(Document doc) {
     final mangaList = <MManga>[];
 
-    var elements = doc.select('div.manga-item a, div.list-item a.item, div.page-item-detail a');
+    // Try comic-card based selectors (current mgeko layout)
+    var elements = doc.select('div.comic-card a, div.comic-item a');
+    // Fallback to older selectors
+    if (elements.isEmpty) elements = doc.select('div.manga-item a, div.list-item a.item, div.page-item-detail a');
     if (elements.isEmpty) elements = doc.select('div.item a, div.col-item a');
 
     for (final el in elements) {
@@ -110,7 +113,7 @@ class MangaGeko extends MProvider {
       if (manga.link != null && !manga.link!.startsWith('http')) {
         manga.link = '$baseUrl${manga.link}';
       }
-      final titleEl = el.selectFirst('h3, span.title, div.title, div.manga-name');
+      final titleEl = el.selectFirst('div.comic-card__title, h3, span.title, div.title');
       if (titleEl != null) manga.name = titleEl.text.trim();
       if (manga.name == null || manga.name!.isEmpty) manga.name = el.attr('title') ?? '';
       final imgEl = el.selectFirst('img');

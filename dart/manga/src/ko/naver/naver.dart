@@ -99,11 +99,17 @@ class NaverWebtoon extends MProvider {
   MPages _parseList(Document doc) {
     final mangaList = <MManga>[];
 
-    var elements = doc.select('a.DailyListItem, ul.list_toon li a, div.item a');
+    // Main webtoon list (mobile)
+    var elements = doc.select('ul.list_toon li.item a.link');
+    // Fallback: new this month section
+    if (elements.isEmpty) elements = doc.select('div.area_toon a.link_thumbnail');
+    // Fallback: generic
+    if (elements.isEmpty) elements = doc.select('a.DailyListItem, ul.list_toon li a');
+
     for (final el in elements) {
       final manga = MManga();
       manga.link = el.attr('href');
-      final titleEl = el.selectFirst('span.text, span.title, p.title');
+      final titleEl = el.selectFirst('strong.title span.title_text, strong.title, span.title');
       if (titleEl != null) manga.name = titleEl.text.trim();
       final imgEl = el.selectFirst('img');
       if (imgEl != null) manga.imageUrl = imgEl.getSrc();

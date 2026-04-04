@@ -8,5 +8,5 @@
   "sourceCodeFile": "luscious.dart",
   "version": "0.1.0",
   "isNsfw": true,
-  "hasCloudflare": false
+  "hasCloudflare": true
 }

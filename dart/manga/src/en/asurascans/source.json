@@ -1,0 +1,12 @@
+{
+  "id": "asurascans-en",
+  "name": "Asura Scans",
+  "baseUrl": "https://asurascans.com",
+  "lang": "en",
+  "framework": "custom",
+  "sourceCodeLanguage": "dart",
+  "sourceCodeFile": "asurascans.dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": true
+}
