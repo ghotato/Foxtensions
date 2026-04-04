@@ -1,0 +1,12 @@
+{
+  "id": "mangageko-en",
+  "name": "MangaGeko",
+  "baseUrl": "https://www.mgeko.cc",
+  "lang": "en",
+  "framework": "custom",
+  "sourceCodeLanguage": "dart",
+  "sourceCodeFile": "mangageko.dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": true
+}

@@ -1,0 +1,12 @@
+{
+  "id": "hitomi-all",
+  "name": "Hitomi",
+  "baseUrl": "https://hitomi.la",
+  "lang": "all",
+  "framework": "custom",
+  "sourceCodeLanguage": "dart",
+  "sourceCodeFile": "hitomi.dart",
+  "version": "0.1.0",
+  "isNsfw": true,
+  "hasCloudflare": false
+}

@@ -1,0 +1,13 @@
+{
+  "id": "toongod-en",
+  "name": "ToonGod",
+  "baseUrl": "https://www.toonsgod.com",
+  "lang": "en",
+  "framework": "madara",
+  "sourceCodeLanguage": "dart",
+  "version": "0.1.0",
+  "isNsfw": true,
+  "hasCloudflare": true,
+  "dateFormat": "MMMM dd, yyyy",
+  "dateFormatLocale": "en_us"
+}

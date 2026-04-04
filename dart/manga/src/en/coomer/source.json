@@ -1,0 +1,12 @@
+{
+  "id": "coomer-en",
+  "name": "Coomer",
+  "baseUrl": "https://coomer.su",
+  "lang": "en",
+  "framework": "custom",
+  "sourceCodeLanguage": "dart",
+  "sourceCodeFile": "coomer.dart",
+  "version": "0.1.0",
+  "isNsfw": true,
+  "hasCloudflare": false
+}

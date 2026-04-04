@@ -1,0 +1,12 @@
+{
+  "id": "kemono-en",
+  "name": "Kemono",
+  "baseUrl": "https://kemono.su",
+  "lang": "en",
+  "framework": "custom",
+  "sourceCodeLanguage": "dart",
+  "sourceCodeFile": "kemono.dart",
+  "version": "0.1.0",
+  "isNsfw": true,
+  "hasCloudflare": false
+}

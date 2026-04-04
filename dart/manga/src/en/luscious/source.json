@@ -1,0 +1,12 @@
+{
+  "id": "luscious-en",
+  "name": "Luscious",
+  "baseUrl": "https://www.luscious.net",
+  "lang": "en",
+  "framework": "custom",
+  "sourceCodeLanguage": "dart",
+  "sourceCodeFile": "luscious.dart",
+  "version": "0.1.0",
+  "isNsfw": true,
+  "hasCloudflare": false
+}

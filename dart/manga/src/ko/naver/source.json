@@ -1,0 +1,12 @@
+{
+  "id": "naver-ko",
+  "name": "Naver Webtoon",
+  "baseUrl": "https://comic.naver.com",
+  "lang": "ko",
+  "framework": "custom",
+  "sourceCodeLanguage": "dart",
+  "sourceCodeFile": "naver.dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": false
+}

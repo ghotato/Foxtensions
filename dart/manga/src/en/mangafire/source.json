@@ -1,0 +1,12 @@
+{
+  "id": "mangafire-en",
+  "name": "MangaFire",
+  "baseUrl": "https://mangafire.to",
+  "lang": "en",
+  "framework": "custom",
+  "sourceCodeLanguage": "dart",
+  "sourceCodeFile": "mangafire.dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": true
+}

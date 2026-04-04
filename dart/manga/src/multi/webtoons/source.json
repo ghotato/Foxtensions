@@ -1,0 +1,12 @@
+{
+  "id": "webtoons-en",
+  "name": "Webtoons",
+  "baseUrl": "https://www.webtoons.com",
+  "lang": "en",
+  "framework": "custom",
+  "sourceCodeLanguage": "dart",
+  "sourceCodeFile": "webtoons.dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": false
+}
