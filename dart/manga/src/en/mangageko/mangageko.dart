@@ -101,22 +101,29 @@ class MangaGeko extends MProvider {
   MPages _parseList(Document doc) {
     final mangaList = <MManga>[];
 
-    // Try comic-card based selectors (current mgeko layout)
-    var elements = doc.select('div.comic-card a, div.comic-item a');
-    // Fallback to older selectors
-    if (elements.isEmpty) elements = doc.select('div.manga-item a, div.list-item a.item, div.page-item-detail a');
-    if (elements.isEmpty) elements = doc.select('div.item a, div.col-item a');
+    // MangaGeko uses comic-card div with title link and button link inside
+    var elements = doc.select('div.comic-card');
+    // Fallback
+    if (elements.isEmpty) elements = doc.select('div.manga-item, div.list-item');
 
     for (final el in elements) {
       final manga = MManga();
-      manga.link = el.attr('href');
+      // Link from the "Read" button or title link
+      final btnEl = el.selectFirst('a.comic-card__button');
+      final titleLinkEl = el.selectFirst('div.comic-card__title a');
+      if (btnEl != null) {
+        manga.link = btnEl.attr('href');
+      } else if (titleLinkEl != null) {
+        manga.link = titleLinkEl.attr('href');
+      }
       if (manga.link != null && !manga.link!.startsWith('http')) {
         manga.link = '$baseUrl${manga.link}';
       }
-      final titleEl = el.selectFirst('div.comic-card__title, h3, span.title, div.title');
+      // Title
+      final titleEl = el.selectFirst('div.comic-card__title a, div.comic-card__title');
       if (titleEl != null) manga.name = titleEl.text.trim();
-      if (manga.name == null || manga.name!.isEmpty) manga.name = el.attr('title') ?? '';
-      final imgEl = el.selectFirst('img');
+      // Image
+      final imgEl = el.selectFirst('div.comic-card__cover img, img');
       if (imgEl != null) manga.imageUrl = imgEl.getSrc();
       if (manga.name != null && manga.name!.isNotEmpty && manga.link != null) mangaList.add(manga);
     }
