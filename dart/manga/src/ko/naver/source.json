@@ -8,5 +8,8 @@
   "sourceCodeFile": "naver.dart",
   "version": "0.1.0",
   "isNsfw": false,
-  "hasCloudflare": false
+  "hasCloudflare": false,
+  "config": {
+    "loginUrl": "https://nid.naver.com/nidlogin.login?url=https://comic.naver.com"
+  }
 }

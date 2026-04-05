@@ -50,23 +50,37 @@ class AsuraScans extends MProvider {
     final body = res.body;
     final manga = MManga();
 
-    // Parse series metadata from JSON
-    final titleMatch = RegExp(r'"title"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(body);
-    if (titleMatch != null) manga.name = titleMatch.group(1)!.replaceAll(r'\"', '"');
-
-    final descMatch = RegExp(r'"description"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(body);
-    if (descMatch != null) manga.description = descMatch.group(1)!.replaceAll(r'\n', '\n').replaceAll(r'\"', '"');
-
-    final coverMatch = RegExp(r'"cover"\s*:\s*"([^"]*)"').firstMatch(body);
-    if (coverMatch != null) {
-      final cover = coverMatch.group(1)!;
-      manga.imageUrl = cover.startsWith('http') ? cover : '$apiBase$cover';
+    // Extract the "series":{...} block — use ,"series":{ to skip recommended_series
+    String seriesJson = body;
+    final seriesStart = body.indexOf(',"series":{');
+    if (seriesStart >= 0) {
+      final afterSeries = body.substring(seriesStart);
+      // Find end: either ,"recommended_series" or ,"chapters" or end of object
+      var endIdx = afterSeries.indexOf(',"recommended_series"');
+      if (endIdx < 0) endIdx = afterSeries.indexOf(',"chapters"');
+      if (endIdx < 0) endIdx = afterSeries.length;
+      seriesJson = afterSeries.substring(0, endIdx);
     }
 
-    final authorMatch = RegExp(r'"author"\s*:\s*"([^"]*)"').firstMatch(body);
+    // Parse series metadata
+    final titleMatch = RegExp(r'"title"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(seriesJson);
+    if (titleMatch != null) manga.name = titleMatch.group(1)!.replaceAll(r'\"', '"');
+
+    final descMatch = RegExp(r'"description"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(seriesJson);
+    if (descMatch != null) manga.description = descMatch.group(1)!.replaceAll(r'\n', '\n').replaceAll(r'\"', '"');
+
+    final coverMatch = RegExp(r'"cover"\s*:\s*"([^"]*)"').firstMatch(seriesJson);
+    if (coverMatch == null) {
+      final coverUrlMatch = RegExp(r'"cover_url"\s*:\s*"([^"]*)"').firstMatch(seriesJson);
+      if (coverUrlMatch != null) manga.imageUrl = coverUrlMatch.group(1);
+    } else {
+      manga.imageUrl = coverMatch.group(1);
+    }
+
+    final authorMatch = RegExp(r'"author"\s*:\s*"([^"]*)"').firstMatch(seriesJson);
     if (authorMatch != null) manga.author = authorMatch.group(1);
 
-    final statusMatch = RegExp(r'"status"\s*:\s*"([^"]*)"').firstMatch(body);
+    final statusMatch = RegExp(r'"status"\s*:\s*"([^"]*)"').firstMatch(seriesJson);
     if (statusMatch != null) {
       final s = statusMatch.group(1)!.toLowerCase();
       if (s.contains('ongoing')) { manga.status = 0; }
@@ -74,19 +88,12 @@ class AsuraScans extends MProvider {
       else if (s.contains('hiatus')) { manga.status = 2; }
     }
 
-    // Genres
-    final genreMatches = RegExp(r'"genre"\s*:\s*"([^"]*)"').allMatches(body);
-    if (genreMatches.isNotEmpty) {
-      manga.genre = genreMatches.map((m) => m.group(1)!).toList();
-    }
-    // Also try "name" in genres array
-    if (manga.genre == null || manga.genre!.isEmpty) {
-      final nameInGenres = RegExp(r'"genres"\s*:\s*\[.*?\]', dotAll: true).firstMatch(body);
-      if (nameInGenres != null) {
-        final names = RegExp(r'"name"\s*:\s*"([^"]*)"').allMatches(nameInGenres.group(0)!);
-        if (names.isNotEmpty) {
-          manga.genre = names.map((m) => m.group(1)!).toList();
-        }
+    // Genres from the series object's genres array
+    final genresBlock = RegExp(r'"genres"\s*:\s*\[(.*?)\]', dotAll: true).firstMatch(seriesJson);
+    if (genresBlock != null) {
+      final names = RegExp(r'"name"\s*:\s*"([^"]*)"').allMatches(genresBlock.group(1)!);
+      if (names.isNotEmpty) {
+        manga.genre = names.map((m) => m.group(1)!).toList();
       }
     }
 
@@ -105,14 +112,14 @@ class AsuraScans extends MProvider {
       );
 
       var found = 0;
-      // Parse individual chapter objects
-      final objPattern = RegExp(r'\{[^{}]*"number"[^{}]*"slug"[^{}]*\}', dotAll: true);
-      for (final obj in objPattern.allMatches(chBody)) {
-        final str = obj.group(0)!;
-        final numMatch = RegExp(r'"number"\s*:\s*(\d+)').firstMatch(str);
-        final slugMatch = RegExp(r'"slug"\s*:\s*"([^"]*)"').firstMatch(str);
-        final dateMatch = RegExp(r'"published_at"\s*:\s*"([^"]*)"').firstMatch(str);
-        final titleMatch = RegExp(r'"title"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(str);
+      // Split the data array by "id": to get individual chapter entries
+      // Each chapter starts with {"id": and contains number, slug, title, published_at
+      final chEntries = chBody.split('"series_id":');
+      for (final entry in chEntries.skip(1)) {
+        final numMatch = RegExp(r'"number"\s*:\s*(\d+)').firstMatch(entry);
+        final slugMatch = RegExp(r'"slug"\s*:\s*"([^"]*)"').firstMatch(entry);
+        final dateMatch = RegExp(r'"published_at"\s*:\s*"([^"]*)"').firstMatch(entry);
+        final titleMatch = RegExp(r'"title"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(entry);
 
         if (numMatch != null && slugMatch != null) {
           final ch = MChapter();

@@ -1,7 +1,7 @@
 {
   "repoName": "Foxlations Extensions",
   "repoVersion": "1.0.0",
-  "generatedAt": "2026-04-04T21:02:18.824720Z",
+  "generatedAt": "2026-04-05T18:21:19.035223Z",
   "sources": [
     {
       "id": "asurascans-en",
@@ -25,7 +25,7 @@
       "framework": "custom",
       "sourceCodeLanguage": "dart",
       "sourceCodeFile": "coomer.dart",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "isNsfw": true,
       "hasCloudflare": false,
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/en/coomer/coomer.dart",
@@ -69,7 +69,7 @@
       "framework": "custom",
       "sourceCodeLanguage": "dart",
       "sourceCodeFile": "kemono.dart",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "isNsfw": true,
       "hasCloudflare": false,
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/en/kemono/kemono.dart",
@@ -97,7 +97,7 @@
       "framework": "custom",
       "sourceCodeLanguage": "dart",
       "sourceCodeFile": "mangafire.dart",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "isNsfw": false,
       "hasCloudflare": true,
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/en/mangafire/mangafire.dart",
@@ -143,6 +143,9 @@
       "version": "0.1.0",
       "isNsfw": false,
       "hasCloudflare": false,
+      "config": {
+        "loginUrl": "https://nid.naver.com/nidlogin.login?url=https://comic.naver.com"
+      },
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/ko/naver/naver.dart",
       "iconUrl": ""
     },

@@ -1,5 +1,5 @@
-// MangaFire - Custom source with AJAX JSON API
-// Uses mangafire.to with internal /ajax/ endpoints
+// MangaFire - Based on keiyoushi's implementation
+// Uses mangafire.to with AJAX endpoints
 
 import 'package:mangayomi/bridge_lib.dart';
 
@@ -11,106 +11,174 @@ class MangaFire extends MProvider {
 
   String get baseUrl => source.baseUrl;
 
+  Map<String, String> get _headers => {
+    'Referer': '$baseUrl/',
+  };
+
   @override
   Future<MPages> getPopular(int page) async {
-    final url = '$baseUrl/filter?keyword=&sort=most_viewed&page=$page';
-    final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
+    final url = '$baseUrl/filter?keyword=&sort=most_viewed&language%5B%5D=en&page=$page';
+    final res = await client.get(url, headers: _headers);
     return _parseList(Document(res.body));
   }
 
   @override
   Future<MPages> getLatestUpdates(int page) async {
-    final url = '$baseUrl/filter?keyword=&sort=recently_updated&page=$page';
-    final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
+    final url = '$baseUrl/filter?keyword=&sort=recently_updated&language%5B%5D=en&page=$page';
+    final res = await client.get(url, headers: _headers);
     return _parseList(Document(res.body));
   }
 
   @override
   Future<MPages> search(String query, int page, FilterList filterList) async {
     final q = Uri.encodeComponent(query);
-    final url = '$baseUrl/filter?keyword=$q&page=$page';
-    final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
+    final url = '$baseUrl/filter?keyword=$q&language%5B%5D=en&page=$page';
+    final res = await client.get(url, headers: _headers);
     return _parseList(Document(res.body));
   }
 
   @override
   Future<MManga> getDetail(String url) async {
-    final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
+    final fullUrl = url.startsWith('http') ? url : '$baseUrl$url';
+    final res = await client.get(fullUrl, headers: _headers);
     final doc = Document(res.body);
     final manga = MManga();
 
-    final titleEl = doc.selectFirst('h1, div.manga-name h1');
-    if (titleEl != null) manga.name = titleEl.text.trim();
-
-    final imgEl = doc.selectFirst('div.poster img, img.poster');
-    if (imgEl != null) manga.imageUrl = imgEl.getSrc();
-
-    final authorEl = doc.selectFirst('div.meta a[href*=author], span.author');
-    if (authorEl != null) manga.author = authorEl.text.trim();
-
-    final descEl = doc.selectFirst('div.description, div.modal-body div.content, p.description');
-    if (descEl != null) manga.description = descEl.text.trim();
-
-    final genreEls = doc.select('div.genres a, a.genre');
-    if (genreEls.isNotEmpty) {
-      manga.genre = genreEls.map((e) => e.text.trim()).where((e) => e.isNotEmpty).toList();
+    // Title
+    final titleEl = doc.selectFirst('h1');
+    if (titleEl != null) {
+      manga.name = titleEl.text.trim();
     }
 
-    final statusEl = doc.selectFirst('span.status, div.status');
+    // Cover image
+    final imgEl = doc.selectFirst('.poster img');
+    if (imgEl != null) {
+      manga.imageUrl = imgEl.getSrc();
+    }
+
+    // Description
+    final descEl = doc.selectFirst('#synopsis .modal-content');
+    if (descEl != null) {
+      manga.description = descEl.text.trim();
+    }
+
+    // Status from .info > p
+    final statusEl = doc.selectFirst('.info > p');
     if (statusEl != null) {
-      final s = statusEl.text.toLowerCase();
-      if (s.contains('releasing') || s.contains('ongoing')) { manga.status = 0; }
-      else if (s.contains('completed')) { manga.status = 1; }
-      else if (s.contains('hiatus')) { manga.status = 2; }
+      manga.status = parseStatus(statusEl.text);
     }
 
-    // Chapters - try AJAX endpoint
-    final chapters = <MChapter>[];
-    // Extract manga ID from URL slug
-    final slug = url.split('/').where((s) => s.isNotEmpty).last;
+    // Extract manga ID from URL (after last dot: /manga/one-piece.rj2y -> rj2y)
+    final mangaId = fullUrl.split('.').last.split('/').first;
 
+    // Fetch chapters via AJAX
+    final chapters = <MChapter>[];
     try {
-      final ajaxUrl = '$baseUrl/ajax/manga/$slug/chapter/en';
+      final ajaxUrl = '$baseUrl/ajax/manga/$mangaId/chapter/en';
       final ajaxRes = await client.get(ajaxUrl, headers: {
-        'Referer': url,
+        'Referer': fullUrl,
         'X-Requested-With': 'XMLHttpRequest',
       });
-      final chDoc = Document(ajaxRes.body);
-      final chEls = chDoc.select('a, li a');
-      for (final el in chEls) {
-        final ch = MChapter();
-        ch.url = el.attr('href');
-        ch.name = el.text.trim();
-        if (ch.url != null && ch.name != null && ch.name!.isNotEmpty) chapters.add(ch);
-      }
-    } catch (_) {}
 
-    // Fallback: chapters from page HTML
-    if (chapters.isEmpty) {
-      final chEls = doc.select('ul.chapter-list li a, div.chapter-list a');
-      for (final el in chEls) {
+      // Response is JSON: {"result":"<html>","status":200}
+      // Use native jsonDecode to properly unescape the HTML
+      final jsonData = jsonDecode(ajaxRes.body);
+      final html = jsonData['result'] ?? ajaxRes.body;
+
+      final chDoc = Document(html);
+      final chEls = chDoc.select('li');
+      for (final li in chEls) {
+        final a = li.selectFirst('a');
+        if (a == null) {
+          continue;
+        }
+
+        final href = a.attr('href');
+        if (href == null || href.isEmpty) {
+          continue;
+        }
+
         final ch = MChapter();
-        ch.url = el.attr('href');
-        final nameEl = el.selectFirst('span.name, span.chapter-name');
-        ch.name = nameEl != null ? nameEl.text.trim() : el.text.trim();
-        if (ch.url != null) chapters.add(ch);
+        if (href.startsWith('http')) {
+          ch.url = href;
+        } else {
+          ch.url = '$baseUrl$href';
+        }
+
+        // Name from first span, date from second span
+        final spans = li.select('span');
+        if (spans.isNotEmpty) {
+          ch.name = spans[0].text.trim();
+          if (spans.length > 1) {
+            ch.dateUpload = spans[1].text.trim();
+          }
+        } else {
+          ch.name = a.text.trim();
+        }
+
+        if (ch.name == null || ch.name!.isEmpty) {
+          ch.name = 'Chapter';
+        }
+
+        chapters.add(ch);
       }
+    } catch (e) {
+      // Chapter fetch failed
     }
-    manga.chapters = chapters;
 
+    manga.chapters = chapters;
     return manga;
   }
 
   @override
   Future<List<dynamic>> getPageList(String url) async {
-    final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
-    final doc = Document(res.body);
+    final fullUrl = url.startsWith('http') ? url : '$baseUrl$url';
+    final res = await client.get(fullUrl, headers: _headers);
+    final body = res.body;
     final pages = <String>[];
 
-    final imgEls = doc.select('div.read-content img, div.container-reader-chapter img, img.reader-img');
-    for (final img in imgEls) {
-      final src = img.getSrc();
-      if (src != null && src.isNotEmpty && !src.contains('logo')) pages.add(src.trim());
+    // Try AJAX endpoint first — extract chapter number from URL
+    // URL format: /read/slug.id/en/chapter-123
+    try {
+      // Find the reading ID in the page HTML (data attribute or script)
+      final chIdMatch = RegExp('data-id="(\\d+)"').firstMatch(body);
+      if (chIdMatch != null) {
+        final chId = chIdMatch.group(1)!;
+        final ajaxUrl = '$baseUrl/ajax/read/chapter/$chId';
+        final ajaxRes = await client.get(ajaxUrl, headers: {
+          'Referer': fullUrl,
+          'X-Requested-With': 'XMLHttpRequest',
+        });
+        // Response: {"result":{"images":[["url",width,offset],...]}}
+        final data = jsonDecode(ajaxRes.body);
+        final result = data['result'];
+        if (result != null) {
+          final images = result['images'];
+          if (images is List) {
+            for (final img in images) {
+              if (img is List && img.isNotEmpty) {
+                pages.add(img[0].toString());
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // AJAX failed (likely needs VRF)
+    }
+
+    // Fallback: extract static.mfcdn.nl image URLs from page source
+    if (pages.isEmpty) {
+      final imgPattern = RegExp("https?://static\\.mfcdn\\.nl/[^\"\\s]+\\.(?:jpg|jpeg|png|webp)");
+      final cdnMatches = imgPattern.allMatches(body);
+      final seen = <String>{};
+      for (final m in cdnMatches) {
+        final imgUrl = m.group(0)!;
+        if (!seen.contains(imgUrl)) {
+          seen.add(imgUrl);
+          pages.add(imgUrl);
+        }
+      }
     }
 
     return pages;
@@ -125,28 +193,46 @@ class MangaFire extends MProvider {
   MPages _parseList(Document doc) {
     final mangaList = <MManga>[];
 
-    var elements = doc.select('div.unit a, div.item a.poster, div.manga-item a');
-    if (elements.isEmpty) elements = doc.select('div.original a.unit');
+    // Keiyoushi selector: .original.card-lg .unit .inner
+    var elements = doc.select('.original .unit .inner');
+    if (elements.isEmpty) elements = doc.select('.unit .inner');
+    if (elements.isEmpty) elements = doc.select('.original .unit');
 
     for (final el in elements) {
       final manga = MManga();
-      manga.link = el.attr('href');
-      if (manga.link != null && !manga.link!.startsWith('http')) {
-        manga.link = '$baseUrl${manga.link}';
+
+      // Link and title from .info > a
+      final infoLink = el.selectFirst('.info a');
+      if (infoLink != null) {
+        var href = infoLink.attr('href') ?? '';
+        if (href.isNotEmpty && !href.startsWith('http')) href = '$baseUrl$href';
+        manga.link = href;
+        manga.name = infoLink.text.trim();
       }
-      final titleEl = el.selectFirst('div.info span.name, span.manga-name, div.title');
-      if (titleEl != null) manga.name = titleEl.text.trim();
-      // Fallback title from attr
-      if (manga.name == null || manga.name!.isEmpty) {
-        manga.name = el.attr('title') ?? '';
+
+      // Fallback: link from parent or any a tag
+      if (manga.link == null || manga.link!.isEmpty) {
+        final a = el.selectFirst('a[href]');
+        if (a != null) {
+          var href = a.attr('href') ?? '';
+          if (href.isNotEmpty && !href.startsWith('http')) href = '$baseUrl$href';
+          manga.link = href;
+          if (manga.name == null || manga.name!.isEmpty) manga.name = a.attr('title') ?? a.text.trim();
+        }
       }
-      final imgEl = el.selectFirst('img');
+
+      // Image
+      final imgEl = el.selectFirst('img[src]');
       if (imgEl != null) manga.imageUrl = imgEl.getSrc();
-      if (manga.name != null && manga.name!.isNotEmpty && manga.link != null) mangaList.add(manga);
+
+      if (manga.name != null && manga.name!.isNotEmpty && manga.link != null) {
+        mangaList.add(manga);
+      }
     }
 
-    final nextPage = doc.selectFirst('a.page-link[rel=next], li.page-item.active + li a');
-    return MPages(mangaList, nextPage != null || mangaList.length >= 20);
+    // Pagination: .page-item.active + .page-item .page-link
+    final nextPage = doc.selectFirst('.page-item.active + .page-item .page-link');
+    return MPages(mangaList, nextPage != null);
   }
 }
 

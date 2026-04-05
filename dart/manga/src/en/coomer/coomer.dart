@@ -1,5 +1,6 @@
-// Coomer.su - Content aggregator (OnlyFans, Fansly)
-// Same API as Kemono at /api/v1/
+// Coomer - Content aggregator (OnlyFans, Fansly, CandFans)
+// Same API as Kemono, based on keiyoushi's implementation
+// Uses native JSON utilities for large API responses
 
 import 'package:mangayomi/bridge_lib.dart';
 
@@ -10,94 +11,149 @@ class Coomer extends MProvider {
   final Client client = Client();
 
   String get baseUrl => source.baseUrl;
+  String get imgCdnUrl => baseUrl.replaceFirst('//', '//img.');
+
+  Map<String, String> get _apiHeaders => {
+    'Referer': '$baseUrl/',
+    'Accept': 'text/css',
+  };
+
+  List<dynamic>? _creatorsCache;
+
+  Future<List<dynamic>> _fetchCreators() async {
+    if (_creatorsCache != null) return _creatorsCache!;
+
+    final res = await client.get('$baseUrl/api/v1/creators', headers: _apiHeaders);
+    final all = jsonDecode(res.body) as List;
+    _creatorsCache = listExclude(all, 'service', ['discord']);
+    return _creatorsCache!;
+  }
 
   @override
   Future<MPages> getPopular(int page) async {
-    final offset = (page - 1) * 50;
-    final url = '$baseUrl/api/v1/posts?o=$offset';
-    final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
-    return _parsePosts(res.body);
+    final creators = await _fetchCreators();
+    final sorted = listSort(creators, 'favorited', true);
+    return _paginateCreators(sorted, page);
   }
 
   @override
   Future<MPages> getLatestUpdates(int page) async {
-    return getPopular(page);
+    final creators = await _fetchCreators();
+    final sorted = listSort(creators, 'updated', true);
+    return _paginateCreators(sorted, page);
   }
 
   @override
   Future<MPages> search(String query, int page, FilterList filterList) async {
-    final offset = (page - 1) * 50;
-    final q = Uri.encodeComponent(query);
-    final url = '$baseUrl/api/v1/posts?q=$q&o=$offset';
-    final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
-    return _parsePosts(res.body);
+    final creators = await _fetchCreators();
+    final filtered = listFilter(creators, 'name', query);
+    return _paginateCreators(filtered, page);
+  }
+
+  MPages _paginateCreators(List<dynamic> creators, int page) {
+    const pageSize = 50;
+    final fromIndex = (page - 1) * pageSize;
+    final toIndex = fromIndex + pageSize;
+    final slice = listSlice(creators, fromIndex, toIndex);
+
+    final mangaList = <MManga>[];
+    for (final c in slice) {
+      final manga = MManga();
+      final id = c['id'].toString();
+      final service = c['service'].toString();
+      manga.name = (c['name'] ?? 'Unknown').toString();
+      manga.link = '/$service/user/$id';
+      manga.imageUrl = '$imgCdnUrl/icons/$service/$id';
+      mangaList.add(manga);
+    }
+
+    return MPages(mangaList, toIndex < creators.length);
   }
 
   @override
   Future<MManga> getDetail(String url) async {
-    // url: /service/user/userid
-    final res = await client.get('$baseUrl/api/v1$url', headers: {'Referer': '$baseUrl/'});
     final manga = MManga();
 
-    // Profile info
-    final nameMatch = RegExp(r'"name"\s*:\s*"([^"]*)"').firstMatch(res.body);
-    if (nameMatch != null) manga.name = nameMatch.group(1);
-
-    // Get posts for this creator
-    final postsRes = await client.get('$baseUrl/api/v1$url/posts?o=0', headers: {'Referer': '$baseUrl/'});
-
-    // Parse as chapters (each post = a chapter)
     final chapters = <MChapter>[];
-    final postPattern = RegExp(
-      r'"id"\s*:\s*"([^"]+)".*?"title"\s*:\s*"((?:[^"\\]|\\.)*)".*?"published"\s*:\s*"([^"]*)"',
-      dotAll: true,
-    );
-    // Split by individual post objects
-    final postObjects = RegExp(r'\{[^{}]*"id"[^{}]*"title"[^{}]*\}').allMatches(postsRes.body);
-    for (final obj in postObjects) {
-      final str = obj.group(0)!;
-      final idMatch = RegExp(r'"id"\s*:\s*"([^"]+)"').firstMatch(str);
-      final titleMatch = RegExp(r'"title"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(str);
-      final dateMatch = RegExp(r'"published"\s*:\s*"([^"]*)"').firstMatch(str);
+    var offset = 0;
+    var hasMore = true;
 
-      if (idMatch != null && titleMatch != null) {
-        final ch = MChapter();
-        ch.name = titleMatch.group(1)!.replaceAll(r'\"', '"');
-        ch.url = '$url/post/${idMatch.group(1)}';
-        if (dateMatch != null) ch.dateUpload = dateMatch.group(1);
-        chapters.add(ch);
+    while (hasMore) {
+      final res = await client.get(
+        '$baseUrl/api/v1$url/posts?o=$offset',
+        headers: _apiHeaders,
+      );
+      final posts = jsonDecode(res.body) as List;
+
+      for (final post in posts) {
+        if (_postHasImages(post)) {
+          final ch = MChapter();
+          final title = (post['title'] ?? '').toString();
+          ch.name = title.isNotEmpty ? title : 'Post ${post['id']}';
+          ch.url = '$url/post/${post['id']}';
+          final published = post['published']?.toString() ?? '';
+          if (published.isNotEmpty) ch.dateUpload = published;
+          chapters.add(ch);
+        }
       }
-    }
-    manga.chapters = chapters;
 
+      hasMore = posts.length >= 50;
+      offset += 50;
+    }
+
+    manga.chapters = chapters;
     return manga;
   }
 
   @override
   Future<List<dynamic>> getPageList(String url) async {
-    // url: /service/user/userid/post/postid
-    final res = await client.get('$baseUrl/api/v1$url', headers: {'Referer': '$baseUrl/'});
+    final res = await client.get('$baseUrl/api/v1$url', headers: _apiHeaders);
+    final data = jsonDecode(res.body);
+
+    final post = data['post'] ?? data;
     final pages = <String>[];
 
-    // Extract file
-    final fileMatch = RegExp(r'"file"\s*:\s*\{[^}]*"path"\s*:\s*"([^"]+)"').firstMatch(res.body);
-    if (fileMatch != null) {
-      final path = fileMatch.group(1)!;
-      pages.add(path.startsWith('http') ? path : '$baseUrl/data$path');
+    final file = post['file'];
+    if (file != null && file['path'] != null) {
+      final path = file['path'].toString();
+      if (path.isNotEmpty && _isImagePath(path)) {
+        pages.add('$baseUrl/data$path');
+      }
     }
 
-    // Extract attachments
-    final attachPattern = RegExp(r'"path"\s*:\s*"([^"]+)"');
-    final attachSection = RegExp(r'"attachments"\s*:\s*\[(.*?)\]', dotAll: true).firstMatch(res.body);
-    if (attachSection != null) {
-      for (final m in attachPattern.allMatches(attachSection.group(1)!)) {
-        final path = m.group(1)!;
-        final fullUrl = path.startsWith('http') ? path : '$baseUrl/data$path';
-        if (!pages.contains(fullUrl)) pages.add(fullUrl);
+    final attachments = post['attachments'];
+    if (attachments is List) {
+      for (final att in attachments) {
+        final path = att['path']?.toString() ?? '';
+        if (path.isNotEmpty && _isImagePath(path)) {
+          final fullUrl = '$baseUrl/data$path';
+          if (!pages.contains(fullUrl)) pages.add(fullUrl);
+        }
       }
     }
 
     return pages;
+  }
+
+  bool _isImagePath(String path) {
+    final ext = path.split('.').last.toLowerCase();
+    return ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'gif' || ext == 'webp';
+  }
+
+  bool _postHasImages(dynamic post) {
+    final file = post['file'];
+    if (file != null) {
+      final path = file['path']?.toString() ?? '';
+      if (path.isNotEmpty && _isImagePath(path)) return true;
+    }
+    final attachments = post['attachments'];
+    if (attachments is List) {
+      for (final att in attachments) {
+        final path = att['path']?.toString() ?? '';
+        if (path.isNotEmpty && _isImagePath(path)) return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -105,42 +161,6 @@ class Coomer extends MProvider {
 
   @override
   List<dynamic> getSourcePreferences() => [];
-
-  MPages _parsePosts(String body) {
-    final mangaList = <MManga>[];
-
-    // Each post in the API response represents a creator's post
-    // Group by user for the browse view
-    final seen = <String>{};
-    final userPattern = RegExp(
-      r'"user"\s*:\s*"([^"]+)".*?"service"\s*:\s*"([^"]+)"',
-      dotAll: true,
-    );
-
-    final postObjects = RegExp(r'\{[^{}]*"user"[^{}]*"service"[^{}]*\}').allMatches(body);
-    for (final obj in postObjects) {
-      final str = obj.group(0)!;
-      final userMatch = RegExp(r'"user"\s*:\s*"([^"]+)"').firstMatch(str);
-      final serviceMatch = RegExp(r'"service"\s*:\s*"([^"]+)"').firstMatch(str);
-      final titleMatch = RegExp(r'"title"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(str);
-
-      if (userMatch != null && serviceMatch != null) {
-        final userId = userMatch.group(1)!;
-        final service = serviceMatch.group(1)!;
-        final key = '$service/$userId';
-        if (seen.contains(key)) continue;
-        seen.add(key);
-
-        final manga = MManga();
-        manga.name = titleMatch?.group(1)?.replaceAll(r'\"', '"') ?? 'Unknown';
-        manga.link = '/$service/user/$userId';
-        manga.imageUrl = '$baseUrl/icons/$service/$userId';
-        mangaList.add(manga);
-      }
-    }
-
-    return MPages(mangaList, mangaList.length >= 25);
-  }
 }
 
 Coomer main(MSource source) {
