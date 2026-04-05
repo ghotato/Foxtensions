@@ -82,70 +82,32 @@ class Madara extends MProvider {
       manga.genre = genreEls.map((e) => e.text.trim()).where((e) => e.isNotEmpty).toList();
     }
 
-    // Chapters — AJAX fetch
-    manga.chapters = await _getChapterList(url, res.body);
-
-    return manga;
-  }
-
-  Future<List<MChapter>> _getChapterList(String mangaUrl, String pageHtml) async {
-    final normalizedUrl = mangaUrl.endsWith('/') ? mangaUrl : '$mangaUrl/';
+    // Chapters — AJAX fetch (inlined to avoid d4rt async nesting issues)
+    final normalizedUrl = url.endsWith('/') ? url : '$url/';
     String chapterHtml = '';
 
-    // Method 1: POST to {mangaUrl}ajax/chapters/
     try {
-      final res = await client.post(
+      final chRes = await client.post(
         '${normalizedUrl}ajax/chapters/',
         headers: {
-          'Referer': mangaUrl,
+          'Referer': url,
           'X-Requested-With': 'XMLHttpRequest',
-          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: '',
       );
-      if (res.statusCode == 200 && res.body.isNotEmpty) {
-        chapterHtml = res.body;
+      if (chRes.statusCode == 200 && chRes.body.isNotEmpty) {
+        chapterHtml = chRes.body;
       }
     } catch (_) {}
 
-    // Method 2: POST to wp-admin/admin-ajax.php
     if (chapterHtml.isEmpty) {
-      final doc = Document(pageHtml);
-      final holderEl = doc.selectFirst('[id^=manga-chapters-holder]');
-      final mangaId = holderEl != null ? holderEl.attr('data-id') : null;
-
-      if (mangaId != null) {
-        try {
-          final res = await client.post(
-            '$baseUrl/wp-admin/admin-ajax.php',
-            headers: {
-              'Referer': mangaUrl,
-              'X-Requested-With': 'XMLHttpRequest',
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'action=manga_get_chapters&manga=$mangaId',
-          );
-          if (res.statusCode == 200 && res.body.isNotEmpty) {
-            chapterHtml = res.body;
-          }
-        } catch (_) {}
-      }
+      chapterHtml = res.body;
     }
 
-    // Method 3: Fallback to page HTML
-    if (chapterHtml.isEmpty) {
-      chapterHtml = pageHtml;
-    }
-
-    return _parseChapters(chapterHtml);
-  }
-
-  List<MChapter> _parseChapters(String html) {
-    final doc = Document(html);
+    final chDoc = Document(chapterHtml);
     final chapters = <MChapter>[];
-
-    final elements = doc.select('li.wp-manga-chapter');
-    for (final el in elements) {
+    final chElements = chDoc.select('li.wp-manga-chapter');
+    for (final el in chElements) {
       final chapter = MChapter();
       final linkEl = el.selectFirst('a');
       if (linkEl != null) {
@@ -161,8 +123,9 @@ class Madara extends MProvider {
       }
       if (chapter.url != null) chapters.add(chapter);
     }
+    manga.chapters = chapters;
 
-    return chapters;
+    return manga;
   }
 
   @override
@@ -185,21 +148,14 @@ class Madara extends MProvider {
       }
     }
 
-    // Primary: div.page-break img
+    // Primary: chapter images
     if (pages.isEmpty) {
-      final imgElements = doc.select('div.page-break img');
+      var imgElements = doc.select('div.page-break img');
+      if (imgElements.isEmpty) imgElements = doc.select('img.wp-manga-chapter-img');
+      if (imgElements.isEmpty) imgElements = doc.select('div.reading-content img');
       for (final img in imgElements) {
         final src = img.getSrc();
-        if (src != null && src.isNotEmpty) pages.add(src.trim());
-      }
-    }
-
-    // Fallback: reading-content img
-    if (pages.isEmpty) {
-      final imgs = doc.select('div.reading-content img');
-      for (final img in imgs) {
-        final src = img.getSrc();
-        if (src != null && src.isNotEmpty) pages.add(src.trim());
+        if (src != null && src.trim().isNotEmpty) pages.add(src.trim());
       }
     }
 

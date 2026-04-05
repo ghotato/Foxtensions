@@ -1,7 +1,7 @@
 {
   "repoName": "Foxlations Extensions",
   "repoVersion": "1.0.0",
-  "generatedAt": "2026-04-04T20:07:16.564501Z",
+  "generatedAt": "2026-04-04T21:02:18.824720Z",
   "sources": [
     {
       "id": "asurascans-en",
@@ -144,21 +144,6 @@
       "isNsfw": false,
       "hasCloudflare": false,
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/ko/naver/naver.dart",
-      "iconUrl": ""
-    },
-    {
-      "id": "toongod-en",
-      "name": "ToonGod",
-      "baseUrl": "https://www.toonsgod.com",
-      "lang": "en",
-      "framework": "madara",
-      "sourceCodeLanguage": "dart",
-      "version": "0.1.0",
-      "isNsfw": true,
-      "hasCloudflare": true,
-      "dateFormat": "MMMM dd, yyyy",
-      "dateFormatLocale": "en_us",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
       "iconUrl": ""
     },
     {
