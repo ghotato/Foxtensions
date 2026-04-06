@@ -1,7 +1,7 @@
 // Flame Comics - Custom Source (Next.js JSON API)
-// Class-based pattern compatible with mangayomi's invoke() system.
+// Class-based multisrc framework.
 
-import 'package:mangayomi/bridge_lib.dart';
+import 'package:foxlations/bridge_lib.dart';
 
 class FlameComics extends MProvider {
   FlameComics({required this.source});

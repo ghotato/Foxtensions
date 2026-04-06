@@ -1,6 +1,6 @@
 // Naver Webtoon - Uses comic.naver.com API
 
-import 'package:mangayomi/bridge_lib.dart';
+import 'package:foxlations/bridge_lib.dart';
 
 class NaverWebtoon extends MProvider {
   NaverWebtoon({required this.source});

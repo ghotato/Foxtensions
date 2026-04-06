@@ -1,7 +1,7 @@
 // Webtoons.com - Official webtoon platform
 // HTML scraping with pagination
 
-import 'package:mangayomi/bridge_lib.dart';
+import 'package:foxlations/bridge_lib.dart';
 
 class Webtoons extends MProvider {
   Webtoons({required this.source});

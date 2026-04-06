@@ -1,0 +1,13 @@
+{
+  "id": "suryascans-en",
+  "name": "Surya Scans",
+  "baseUrl": "https://suryascans.org",
+  "lang": "en",
+  "framework": "mangathemesia",
+  "sourceCodeLanguage": "dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": true,
+  "dateFormat": "MMMM dd, yyyy",
+  "dateFormatLocale": "en"
+}

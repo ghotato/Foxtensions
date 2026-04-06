@@ -1,8 +1,8 @@
 // Kemono - Content aggregator (Patreon, Fanbox, etc.)
-// Based on keiyoushi's implementation
+// Content aggregator (Patreon, Fanbox, etc.)
 // Uses native JSON utilities for large API responses
 
-import 'package:mangayomi/bridge_lib.dart';
+import 'package:foxlations/bridge_lib.dart';
 
 class Kemono extends MProvider {
   Kemono({required this.source});
@@ -80,6 +80,23 @@ class Kemono extends MProvider {
   @override
   Future<MManga> getDetail(String url) async {
     final manga = MManga();
+
+    // Fetch creator profile for name and thumbnail
+    // url: /{service}/user/{id}
+    final parts = url.split('/');
+    if (parts.length >= 4) {
+      final service = parts[1];
+      final userId = parts[3];
+      try {
+        final profileRes = await client.get(
+          '$baseUrl/api/v1/$service/user/$userId/profile',
+          headers: _apiHeaders,
+        );
+        final profile = jsonDecode(profileRes.body);
+        manga.name = (profile['name'] ?? '').toString();
+        manga.imageUrl = '$imgCdnUrl/icons/$service/$userId';
+      } catch (_) {}
+    }
 
     // Fetch posts for this creator (each post with images = a chapter)
     final chapters = <MChapter>[];

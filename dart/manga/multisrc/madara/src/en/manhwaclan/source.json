@@ -1,0 +1,13 @@
+{
+  "id": "manhwaclan-en",
+  "name": "ManhwaClan",
+  "baseUrl": "https://manhwaclan.com",
+  "lang": "en",
+  "framework": "madara",
+  "sourceCodeLanguage": "dart",
+  "version": "0.1.0",
+  "isNsfw": true,
+  "hasCloudflare": false,
+  "dateFormat": "MMMM dd, yyyy",
+  "dateFormatLocale": "en"
+}

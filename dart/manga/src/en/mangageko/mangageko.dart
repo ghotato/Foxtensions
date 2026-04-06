@@ -1,6 +1,6 @@
 // MangaGeko (mgeko.cc) - Uses AJAX data API
 
-import 'package:mangayomi/bridge_lib.dart';
+import 'package:foxlations/bridge_lib.dart';
 
 class MangaGeko extends MProvider {
   MangaGeko({required this.source});

@@ -1,6 +1,6 @@
 // Hitomi.la - Gallery site with custom JS/nozomi API
 
-import 'package:mangayomi/bridge_lib.dart';
+import 'package:foxlations/bridge_lib.dart';
 
 class Hitomi extends MProvider {
   Hitomi({required this.source});

@@ -1,0 +1,13 @@
+{
+  "id": "xcalibrscans-en",
+  "name": "xCaliBR Scans",
+  "baseUrl": "https://xcalibrscans.com",
+  "lang": "en",
+  "framework": "mangathemesia",
+  "sourceCodeLanguage": "dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": true,
+  "dateFormat": "MMMM dd, yyyy",
+  "dateFormatLocale": "en"
+}

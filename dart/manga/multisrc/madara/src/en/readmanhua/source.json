@@ -1,13 +1,13 @@
 {
-  "id": "mangabat-en",
-  "name": "Mangabat",
-  "baseUrl": "https://www.mangabats.com",
+  "id": "readmanhua-en",
+  "name": "ReadManhua",
+  "baseUrl": "https://readmanhua.net",
   "lang": "en",
-  "framework": "mangabox",
+  "framework": "madara",
   "sourceCodeLanguage": "dart",
   "version": "0.1.0",
   "isNsfw": false,
   "hasCloudflare": false,
-  "dateFormat": "MMM dd,yy",
+  "dateFormat": "dd MMM yyyy",
   "dateFormatLocale": "en"
 }

@@ -1,7 +1,7 @@
 // Asura Scans - REST API source
 // API at https://api.asurascans.com/api/
 
-import 'package:mangayomi/bridge_lib.dart';
+import 'package:foxlations/bridge_lib.dart';
 
 class AsuraScans extends MProvider {
   AsuraScans({required this.source});
@@ -15,7 +15,7 @@ class AsuraScans extends MProvider {
   @override
   Future<MPages> getPopular(int page) async {
     final offset = (page - 1) * 20;
-    final url = '$apiBase/api/series?sort=rating&order=desc&offset=$offset&limit=20';
+    final url = '$apiBase/api/series?sort=popular&order=desc&offset=$offset&limit=20';
     final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
     return _parseSeriesList(res.body);
   }
@@ -180,22 +180,22 @@ class AsuraScans extends MProvider {
   MPages _parseSeriesList(String body) {
     final mangaList = <MManga>[];
 
-    // API returns {"data":[{series},{series},...]}
-    // Each series has: title, slug, cover, public_url, latest_chapters (nested)
-    // We need to match top-level series fields, not nested chapter fields
-    // Split by "public_url" which only appears in series objects
-    final seriesPattern = RegExp(
-      r'"slug"\s*:\s*"([^"]*)".*?"title"\s*:\s*"((?:[^"\\]|\\.)*)".*?"cover"\s*:\s*"([^"]*)".*?"public_url"\s*:\s*"([^"]*)"',
-      dotAll: true,
-    );
-
-    for (final m in seriesPattern.allMatches(body)) {
-      final manga = MManga();
-      manga.name = m.group(2)!.replaceAll(r'\"', '"');
-      final pubUrl = m.group(4)!;
-      manga.link = '$baseUrl$pubUrl';
-      manga.imageUrl = m.group(3)!;
-      mangaList.add(manga);
+    // Parse JSON natively to avoid regex matching nested chapter titles
+    final data = jsonDecode(body);
+    final series = data['data'];
+    if (series is List) {
+      for (final s in series) {
+        final manga = MManga();
+        // Try series_title, name, then title as fallback
+        final title = s['series_title'] ?? s['name'] ?? s['title'] ?? 'Unknown';
+        manga.name = title.toString();
+        final pubUrl = (s['public_url'] ?? '').toString();
+        manga.link = pubUrl.startsWith('http') ? pubUrl : '$baseUrl$pubUrl';
+        manga.imageUrl = (s['cover'] ?? s['cover_url'] ?? '').toString();
+        if (manga.name!.isNotEmpty) {
+          mangaList.add(manga);
+        }
+      }
     }
 
     return MPages(mangaList, mangaList.length >= 20);

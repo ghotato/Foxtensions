@@ -1,7 +1,7 @@
 // Madara WordPress Theme - Multisrc Framework
-// Class-based pattern compatible with mangayomi's invoke() system.
+// Class-based multisrc framework.
 
-import 'package:mangayomi/bridge_lib.dart';
+import 'package:foxlations/bridge_lib.dart';
 
 class Madara extends MProvider {
   Madara({required this.source});

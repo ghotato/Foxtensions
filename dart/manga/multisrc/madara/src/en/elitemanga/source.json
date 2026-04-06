@@ -1,0 +1,13 @@
+{
+  "id": "elitemanga-en",
+  "name": "Elite Manga",
+  "baseUrl": "https://www.elitemanga.org",
+  "lang": "en",
+  "framework": "madara",
+  "sourceCodeLanguage": "dart",
+  "version": "0.1.0",
+  "isNsfw": false,
+  "hasCloudflare": false,
+  "dateFormat": "MMMM dd, yyyy",
+  "dateFormatLocale": "en"
+}

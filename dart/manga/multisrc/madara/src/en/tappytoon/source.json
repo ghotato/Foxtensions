@@ -1,13 +1,13 @@
 {
-  "id": "mangabat-en",
-  "name": "Mangabat",
-  "baseUrl": "https://www.mangabats.com",
+  "id": "tappytoon-en",
+  "name": "TappyToon",
+  "baseUrl": "https://tappytoon.net",
   "lang": "en",
-  "framework": "mangabox",
+  "framework": "madara",
   "sourceCodeLanguage": "dart",
   "version": "0.1.0",
   "isNsfw": false,
   "hasCloudflare": false,
-  "dateFormat": "MMM dd,yy",
+  "dateFormat": "MMMM d, yyyy",
   "dateFormatLocale": "en"
 }

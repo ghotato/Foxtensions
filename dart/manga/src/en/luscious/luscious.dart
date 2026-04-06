@@ -1,6 +1,7 @@
 // Luscious.net - Adult comics (GraphQL API)
+// GraphQL API source — uses GET with query params
 
-import 'package:mangayomi/bridge_lib.dart';
+import 'package:foxlations/bridge_lib.dart';
 
 class Luscious extends MProvider {
   Luscious({required this.source});
@@ -9,95 +10,138 @@ class Luscious extends MProvider {
   final Client client = Client();
 
   String get baseUrl => source.baseUrl;
-  String get apiUrl => '$baseUrl/graphql/nobatch/';
 
-  Future<String> _query(String query) async {
-    final res = await client.post(apiUrl,
-      headers: {
-        'Referer': '$baseUrl/',
-        'Content-Type': 'application/json',
-      },
-      body: query,
-    );
+  Map<String, String> get _headers => {
+    'Referer': '$baseUrl/',
+  };
+
+  // GraphQL queries sent as GET query parameters
+  Future<String> _gql(String operationName, String query, String variables) async {
+    final q = Uri.encodeComponent(query);
+    final v = Uri.encodeComponent(variables);
+    final url = '$baseUrl/graphql/nobatch/?operationName=$operationName&query=$q&variables=$v';
+    final res = await client.get(url, headers: _headers);
     return res.body;
   }
 
+  final String _albumListQuery = 'query AlbumList(\$input: AlbumListInput!) { album { list(input: \$input) { info { page has_next_page } items { url title cover { url } } } } }';
+
+  final String _albumGetQuery = 'query AlbumGet(\$id: ID!) { album { get(id: \$id) { ... on Album { id title description created cover { url } language { title } tags { category text } genres { title } content { title } number_of_pictures } } } }';
+
+  final String _pictureListQuery = 'query AlbumListOwnPictures(\$input: PictureListInput!) { picture { list(input: \$input) { info { has_next_page } items { url_to_original thumbnails { url } position } } } }';
+
   @override
   Future<MPages> getPopular(int page) async {
-    final body = '{"operationName":"AlbumList","query":"query AlbumList{album{list(input:{display:rating,page:$page,items_per_page:30}){info{page has_next_page}items{id title url_title cover{url}}}}}","variables":{}}';
-    final res = await _query(body);
+    final vars = '{"input":{"display":"rating_all_time","page":$page,"filters":[]}}';
+    final res = await _gql('AlbumList', _albumListQuery, vars);
     return _parseAlbums(res);
   }
 
   @override
   Future<MPages> getLatestUpdates(int page) async {
-    final body = '{"operationName":"AlbumList","query":"query AlbumList{album{list(input:{display:date_newest,page:$page,items_per_page:30}){info{page has_next_page}items{id title url_title cover{url}}}}}","variables":{}}';
-    final res = await _query(body);
+    final vars = '{"input":{"display":"date_newest","page":$page,"filters":[]}}';
+    final res = await _gql('AlbumList', _albumListQuery, vars);
     return _parseAlbums(res);
   }
 
   @override
   Future<MPages> search(String query, int page, FilterList filterList) async {
     final q = query.replaceAll('"', '\\"');
-    final body = '{"operationName":"AlbumList","query":"query AlbumList{album{list(input:{display:date_newest,page:$page,items_per_page:30,search_query:\\"$q\\"}){info{page has_next_page}items{id title url_title cover{url}}}}}","variables":{}}';
-    final res = await _query(body);
+    final vars = '{"input":{"display":"date_newest","page":$page,"filters":[{"name":"search_query","value":"$q"}]}}';
+    final res = await _gql('AlbumList', _albumListQuery, vars);
     return _parseAlbums(res);
   }
 
   @override
   Future<MManga> getDetail(String url) async {
-    // url is like /albums/title_123/
-    final idMatch = RegExp(r'_(\d+)/?$').firstMatch(url);
-    final albumId = idMatch?.group(1) ?? '';
-
-    final body = '{"operationName":"AlbumGet","query":"query AlbumGet{album{get(id:\\"$albumId\\"){... on Album{id title description language{title}tags{text}content{total}created}}}}","variables":{}}';
-    final res = await _query(body);
+    final albumId = _extractId(url);
+    final vars = '{"id":"$albumId"}';
+    final res = await _gql('AlbumGet', _albumGetQuery, vars);
+    final data = jsonDecode(res);
     final manga = MManga();
 
-    final titleMatch = RegExp(r'"title"\s*:\s*"([^"]*)"').firstMatch(res);
-    if (titleMatch != null) manga.name = titleMatch.group(1);
+    final album = data['data']['album']['get'];
+    if (album != null) {
+      manga.name = (album['title'] ?? '').toString();
+      manga.description = (album['description'] ?? '').toString();
 
-    final descMatch = RegExp(r'"description"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(res);
-    if (descMatch != null) manga.description = descMatch.group(1)!.replaceAll(r'\n', '\n');
+      final cover = album['cover'];
+      if (cover != null) {
+        var coverUrl = (cover['url'] ?? '').toString();
+        if (coverUrl.startsWith('//')) {
+          coverUrl = 'https:$coverUrl';
+        }
+        manga.imageUrl = coverUrl;
+      }
 
-    manga.imageUrl = '';
-
-    final tagMatches = RegExp(r'"text"\s*:\s*"([^"]*)"').allMatches(res);
-    if (tagMatches.isNotEmpty) {
-      manga.genre = tagMatches.map((m) => m.group(1)!).toList();
+      // Tags
+      final tags = album['tags'];
+      if (tags is List) {
+        manga.genre = tags.map((t) => t['text'].toString()).toList();
+      }
     }
 
-    // Get pages as chapters (single chapter = all pages)
-    final ch = MChapter();
-    ch.name = 'Full Album';
-    ch.url = url;
-    manga.chapters = [ch];
+    // Fetch all pictures — each picture becomes a chapter
+    final chapters = <MChapter>[];
+    var picPage = 1;
+    var hasNext = true;
+    var idx = 1;
+    while (hasNext) {
+      final picVars = '{"input":{"display":"position","page":$picPage,"filters":[{"name":"album_id","value":"$albumId"}]}}';
+      final picRes = await _gql('AlbumListOwnPictures', _pictureListQuery, picVars);
+      final picData = jsonDecode(picRes);
+
+      final picList = picData['data']['picture']['list'];
+      final items = picList['items'];
+      if (items is List) {
+        for (final pic in items) {
+          var imgUrl = (pic['url_to_original'] ?? '').toString();
+          if (imgUrl.isEmpty) {
+            final thumbs = pic['thumbnails'];
+            if (thumbs is List && thumbs.isNotEmpty) {
+              imgUrl = (thumbs[0]['url'] ?? '').toString();
+            }
+          }
+          if (imgUrl.startsWith('//')) {
+            imgUrl = 'https:$imgUrl';
+          }
+          if (imgUrl.isNotEmpty) {
+            final ch = MChapter();
+            final title = (pic['title'] ?? '').toString();
+            ch.name = title.isNotEmpty ? '$idx - $title' : 'Page $idx';
+            // Store the direct image URL as the chapter URL
+            ch.url = imgUrl;
+            chapters.add(ch);
+            idx++;
+          }
+        }
+      }
+
+      hasNext = picList['info']['has_next_page'] == true;
+      picPage++;
+    }
+    manga.chapters = chapters;
 
     return manga;
   }
 
   @override
   Future<List<dynamic>> getPageList(String url) async {
-    final idMatch = RegExp(r'_(\d+)/?$').firstMatch(url);
-    final albumId = idMatch?.group(1) ?? '';
-    final pages = <String>[];
+    // Each chapter URL is a direct image URL
+    return [url];
+  }
 
-    var page = 1;
-    var hasNext = true;
-    while (hasNext && page <= 50) {
-      final body = '{"operationName":"AlbumListOwnPictures","query":"query AlbumListOwnPictures{picture{list(input:{filters:[{name:\\"album_id\\",value:\\"$albumId\\"}],display:position,page:$page,items_per_page:50}){info{has_next_page}items{url_to_original}}}}","variables":{}}';
-      final res = await _query(body);
-
-      final urlMatches = RegExp(r'"url_to_original"\s*:\s*"([^"]*)"').allMatches(res);
-      for (final m in urlMatches) {
-        pages.add(m.group(1)!.replaceAll(r'\/', '/'));
-      }
-
-      hasNext = res.contains('"has_next_page":true');
-      page++;
+  String _extractId(String url) {
+    // URL: /albums/title_12345/ → extract 12345
+    var clean = url;
+    if (clean.endsWith('/')) {
+      clean = clean.substring(0, clean.length - 1);
     }
-
-    return pages;
+    final idx = clean.lastIndexOf('_');
+    if (idx >= 0) {
+      return clean.substring(idx + 1);
+    }
+    return '';
   }
 
   @override
@@ -108,37 +152,33 @@ class Luscious extends MProvider {
 
   MPages _parseAlbums(String body) {
     final mangaList = <MManga>[];
+    final data = jsonDecode(body);
 
-    final pattern = RegExp(
-      r'"id"\s*:\s*"?(\d+)"?.*?"title"\s*:\s*"([^"]*)".*?"url_title"\s*:\s*"([^"]*)"',
-      dotAll: true,
-    );
+    final list = data['data']['album']['list'];
+    final items = list['items'];
+    if (items is List) {
+      for (final item in items) {
+        final manga = MManga();
+        manga.name = (item['title'] ?? '').toString();
+        final albumUrl = (item['url'] ?? '').toString();
+        manga.link = albumUrl.startsWith('http') ? albumUrl : '$baseUrl$albumUrl';
 
-    final itemsMatch = RegExp(r'"items"\s*:\s*\[(.*?)\]', dotAll: true).firstMatch(body);
-    if (itemsMatch != null) {
-      final items = itemsMatch.group(1)!;
-      final objects = RegExp(r'\{[^{}]*"id"[^{}]*\}').allMatches(items);
-      for (final obj in objects) {
-        final str = obj.group(0)!;
-        final idMatch = RegExp(r'"id"\s*:\s*"?(\d+)"?').firstMatch(str);
-        final titleMatch = RegExp(r'"title"\s*:\s*"([^"]*)"').firstMatch(str);
-        final urlMatch = RegExp(r'"url_title"\s*:\s*"([^"]*)"').firstMatch(str);
-        final coverMatch = RegExp(r'"url"\s*:\s*"([^"]*)"').firstMatch(str);
-
-        if (idMatch != null && titleMatch != null) {
-          final manga = MManga();
-          manga.name = titleMatch.group(1);
-          final urlTitle = urlMatch?.group(1) ?? '';
-          manga.link = '$baseUrl/albums/${urlTitle}_${idMatch.group(1)}/';
-          if (coverMatch != null) {
-            manga.imageUrl = coverMatch.group(1)!.replaceAll(r'\/', '/');
+        final cover = item['cover'];
+        if (cover != null) {
+          var coverUrl = (cover['url'] ?? '').toString();
+          if (coverUrl.startsWith('//')) {
+            coverUrl = 'https:$coverUrl';
           }
+          manga.imageUrl = coverUrl;
+        }
+
+        if (manga.name!.isNotEmpty) {
           mangaList.add(manga);
         }
       }
     }
 
-    final hasNext = body.contains('"has_next_page":true');
+    final hasNext = list['info']['has_next_page'] == true;
     return MPages(mangaList, hasNext);
   }
 }
