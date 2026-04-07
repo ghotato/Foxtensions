@@ -1,7 +1,7 @@
 {
   "repoName": "Foxlations Extensions",
   "repoVersion": "1.0.0",
-  "generatedAt": "2026-04-06T20:41:19.251910Z",
+  "generatedAt": "2026-04-07T05:56:50.845137Z",
   "sources": [
     {
       "id": "asurascans-en",
@@ -15,21 +15,6 @@
       "isNsfw": false,
       "hasCloudflare": true,
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/en/asurascans/asurascans.dart",
-      "iconUrl": ""
-    },
-    {
-      "id": "azurescans-en",
-      "name": "Azure Scans",
-      "baseUrl": "https://azuremanga.com",
-      "lang": "en",
-      "framework": "mangathemesia",
-      "sourceCodeLanguage": "dart",
-      "version": "0.1.0",
-      "isNsfw": false,
-      "hasCloudflare": true,
-      "dateFormat": "MMMM dd, yyyy",
-      "dateFormatLocale": "en",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
       "iconUrl": ""
     },
     {
@@ -59,21 +44,6 @@
       "isNsfw": true,
       "hasCloudflare": false,
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/en/coomer/coomer.dart",
-      "iconUrl": ""
-    },
-    {
-      "id": "cosmicscans-en",
-      "name": "Cosmic Scans",
-      "baseUrl": "https://cosmicscans.com",
-      "lang": "en",
-      "framework": "mangathemesia",
-      "sourceCodeLanguage": "dart",
-      "version": "0.1.0",
-      "isNsfw": false,
-      "hasCloudflare": true,
-      "dateFormat": "MMMM dd, yyyy",
-      "dateFormatLocale": "en",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
       "iconUrl": ""
     },
     {
@@ -153,8 +123,8 @@
     },
     {
       "id": "infernalvoid-en",
-      "name": "Infernal Void Scans",
-      "baseUrl": "https://void-scans.com",
+      "name": "Hive Toons",
+      "baseUrl": "https://hivetoons.org",
       "lang": "en",
       "framework": "mangathemesia",
       "sourceCodeLanguage": "dart",
@@ -407,7 +377,7 @@
     {
       "id": "ravenscans-en",
       "name": "Raven Scans",
-      "baseUrl": "https://ravenscans.com",
+      "baseUrl": "https://ravenscans.org",
       "lang": "en",
       "framework": "mangathemesia",
       "sourceCodeLanguage": "dart",
@@ -465,21 +435,6 @@
       "iconUrl": ""
     },
     {
-      "id": "suryascans-en",
-      "name": "Surya Scans",
-      "baseUrl": "https://suryascans.org",
-      "lang": "en",
-      "framework": "mangathemesia",
-      "sourceCodeLanguage": "dart",
-      "version": "0.1.0",
-      "isNsfw": false,
-      "hasCloudflare": true,
-      "dateFormat": "MMMM dd, yyyy",
-      "dateFormatLocale": "en",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
-      "iconUrl": ""
-    },
-    {
       "id": "tappytoon-en",
       "name": "TappyToon",
       "baseUrl": "https://tappytoon.net",
@@ -506,21 +461,6 @@
       "isNsfw": false,
       "hasCloudflare": false,
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/src/multi/webtoons/webtoons.dart",
-      "iconUrl": ""
-    },
-    {
-      "id": "xcalibrscans-en",
-      "name": "xCaliBR Scans",
-      "baseUrl": "https://xcalibrscans.com",
-      "lang": "en",
-      "framework": "mangathemesia",
-      "sourceCodeLanguage": "dart",
-      "version": "0.1.0",
-      "isNsfw": false,
-      "hasCloudflare": true,
-      "dateFormat": "MMMM dd, yyyy",
-      "dateFormatLocale": "en",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
       "iconUrl": ""
     }
   ]

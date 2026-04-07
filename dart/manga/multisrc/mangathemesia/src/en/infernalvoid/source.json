@@ -1,7 +1,7 @@
 {
   "id": "infernalvoid-en",
-  "name": "Infernal Void Scans",
-  "baseUrl": "https://void-scans.com",
+  "name": "Hive Toons",
+  "baseUrl": "https://hivetoons.org",
   "lang": "en",
   "framework": "mangathemesia",
   "sourceCodeLanguage": "dart",

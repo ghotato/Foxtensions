@@ -1,7 +1,7 @@
 {
   "id": "ravenscans-en",
   "name": "Raven Scans",
-  "baseUrl": "https://ravenscans.com",
+  "baseUrl": "https://ravenscans.org",
   "lang": "en",
   "framework": "mangathemesia",
   "sourceCodeLanguage": "dart",
