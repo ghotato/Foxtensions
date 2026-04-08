@@ -1,7 +1,7 @@
 {
   "repoName": "Foxlations Extensions",
   "repoVersion": "1.0.0",
-  "generatedAt": "2026-04-07T05:56:50.845137Z",
+  "generatedAt": "2026-04-07T06:22:29.341515Z",
   "sources": [
     {
       "id": "asurascans-en",
@@ -55,23 +55,8 @@
       "sourceCodeLanguage": "dart",
       "version": "0.1.0",
       "isNsfw": false,
-      "hasCloudflare": false,
+      "hasCloudflare": true,
       "dateFormat": "MM/dd/yyyy",
-      "dateFormatLocale": "en",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
-      "iconUrl": ""
-    },
-    {
-      "id": "elitemanga-en",
-      "name": "Elite Manga",
-      "baseUrl": "https://www.elitemanga.org",
-      "lang": "en",
-      "framework": "madara",
-      "sourceCodeLanguage": "dart",
-      "version": "0.1.0",
-      "isNsfw": false,
-      "hasCloudflare": false,
-      "dateFormat": "MMMM dd, yyyy",
       "dateFormatLocale": "en",
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
       "iconUrl": ""
@@ -306,7 +291,7 @@
       "sourceCodeLanguage": "dart",
       "version": "0.1.0",
       "isNsfw": false,
-      "hasCloudflare": false,
+      "hasCloudflare": true,
       "dateFormat": "MMMM dd, yyyy",
       "dateFormatLocale": "en",
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
@@ -321,22 +306,7 @@
       "sourceCodeLanguage": "dart",
       "version": "0.1.0",
       "isNsfw": true,
-      "hasCloudflare": false,
-      "dateFormat": "MMMM dd, yyyy",
-      "dateFormatLocale": "en",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
-      "iconUrl": ""
-    },
-    {
-      "id": "manhwafull-en",
-      "name": "Manhwafull",
-      "baseUrl": "https://manhwafull.com",
-      "lang": "en",
-      "framework": "madara",
-      "sourceCodeLanguage": "dart",
-      "version": "0.1.0",
-      "isNsfw": true,
-      "hasCloudflare": false,
+      "hasCloudflare": true,
       "dateFormat": "MMMM dd, yyyy",
       "dateFormatLocale": "en",
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
@@ -402,21 +372,6 @@
       "dateFormat": "dd MMM yyyy",
       "dateFormatLocale": "en",
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/madara/madara.dart",
-      "iconUrl": ""
-    },
-    {
-      "id": "rizzcomic-en",
-      "name": "Rizz Comic",
-      "baseUrl": "https://rizzfables.com",
-      "lang": "en",
-      "framework": "mangathemesia",
-      "sourceCodeLanguage": "dart",
-      "version": "0.1.0",
-      "isNsfw": false,
-      "hasCloudflare": true,
-      "dateFormat": "MMMM dd, yyyy",
-      "dateFormatLocale": "en",
-      "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangathemesia/mangathemesia.dart",
       "iconUrl": ""
     },
     {
