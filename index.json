@@ -1,7 +1,7 @@
 {
   "repoName": "Foxlations Extensions",
   "repoVersion": "1.0.0",
-  "generatedAt": "2026-04-07T06:22:29.341515Z",
+  "generatedAt": "2026-04-08T19:00:54.636370Z",
   "sources": [
     {
       "id": "asurascans-en",
@@ -255,13 +255,13 @@
     {
       "id": "manganato-en",
       "name": "Manganato",
-      "baseUrl": "https://natomanga.com",
+      "baseUrl": "https://www.natomanga.com",
       "lang": "en",
       "framework": "mangabox",
       "sourceCodeLanguage": "dart",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "isNsfw": false,
-      "hasCloudflare": false,
+      "hasCloudflare": true,
       "dateFormat": "MMM dd,yyyy",
       "dateFormatLocale": "en_us",
       "sourceCodeUrl": "https://raw.githubusercontent.com/ghotato/Foxtensions/main/dart/manga/multisrc/mangabox/mangabox.dart",

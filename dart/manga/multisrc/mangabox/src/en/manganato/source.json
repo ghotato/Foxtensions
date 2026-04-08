@@ -1,13 +1,13 @@
 {
   "id": "manganato-en",
   "name": "Manganato",
-  "baseUrl": "https://natomanga.com",
+  "baseUrl": "https://www.natomanga.com",
   "lang": "en",
   "framework": "mangabox",
   "sourceCodeLanguage": "dart",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "isNsfw": false,
-  "hasCloudflare": false,
+  "hasCloudflare": true,
   "dateFormat": "MMM dd,yyyy",
   "dateFormatLocale": "en_us"
 }
