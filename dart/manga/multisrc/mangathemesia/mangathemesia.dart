@@ -137,33 +137,67 @@ class MangaThemesia extends MProvider {
     final res = await client.get(url, headers: {'Referer': url});
     final body = res.body;
     final pages = <String>[];
+    // Diagnostic trail. Returned as fake page URLs on failure so we can see
+    // them in the [Service] log without relying on d4rt's print().
+    final diag = <String>[];
+    diag.add('DEBUG bodyLen=${body.length}');
+    diag.add('DEBUG containsImages=${body.contains('"images"')}');
 
-    // Method 1: Extract from ts_reader.run() JSON
-    final tsMatch = RegExp(r'ts_reader\.run\((\{.*\})\)', dotAll: true).firstMatch(body);
-    if (tsMatch != null) {
-      final jsonStr = tsMatch.group(1)!;
-      final imagesMatch = RegExp(r'"images"\s*:\s*\[(.*?)\]', dotAll: true).firstMatch(jsonStr);
-      if (imagesMatch != null) {
-        final urlPattern = RegExp(r'"(https?://[^"]+)"');
-        for (final m in urlPattern.allMatches(imagesMatch.group(1)!)) {
-          pages.add(m.group(1)!);
+    // Method 1: Look for the `"images":[...]` array directly. Uses the same
+    // proven pattern as mangayomi-extensions/multisrc/mangareader: non-greedy
+    // `.*?` with the closing `]` as the terminator. Works for ts_reader.run,
+    // tcl_reader, and any other variant since they all use the same key.
+    final imagesMatch =
+        RegExp(r'"images"\s*:\s*(\[.*?\])', dotAll: true).firstMatch(body);
+    if (imagesMatch != null) {
+      final raw = imagesMatch.group(1)!;
+      diag.add('DEBUG regexMatched rawLen=${raw.length}');
+      diag.add('DEBUG rawHead=${raw.substring(0, raw.length > 120 ? 120 : raw.length)}');
+      try {
+        final list = jsonDecode(raw) as List;
+        for (final p in list) {
+          if (p is String && p.isNotEmpty) pages.add(p);
         }
+        diag.add('DEBUG jsonDecodeParsed=${pages.length}');
+      } catch (e) {
+        diag.add('DEBUG jsonDecodeFailed=$e');
+        // Fallback: extract URLs by regex.
+        final urlPattern = RegExp(r'"(https?:[^"]+)"');
+        for (final m in urlPattern.allMatches(raw)) {
+          final u = m.group(1)!.replaceAll(r'\/', '/');
+          if (u.isNotEmpty) pages.add(u);
+        }
+        diag.add('DEBUG regexExtractGot=${pages.length}');
       }
+    } else {
+      diag.add('DEBUG regexNotMatched');
     }
 
-    // Method 2: HTML img tags in reader area
+    // Method 2: HTML img tags in the reader area.
     if (pages.isEmpty) {
       final doc = Document(body);
-      final imgElements = doc.select('#readerarea img');
+      var imgElements = doc.select(
+          '#readerarea p img, #readerarea img, div.rdminimal img, div.read-content img, div.entry-content img');
+      diag.add('DEBUG selectorFound=${imgElements.length}');
       for (final img in imgElements) {
         final src = img.getSrc();
-        if (src != null && src.isNotEmpty &&
-            !src.contains('logo') && !src.contains('icon') &&
-            !src.contains('avatar') && !src.contains('loading')) {
+        if (src != null &&
+            src.isNotEmpty &&
+            !src.startsWith('data:') &&
+            !src.contains('logo') &&
+            !src.contains('icon') &&
+            !src.contains('avatar') &&
+            !src.contains('loading')) {
           pages.add(src.trim());
         }
       }
+      diag.add('DEBUG selectorPages=${pages.length}');
     }
+
+    // If everything failed, return the diagnostic strings instead of an
+    // empty list so the [Service] log surfaces what happened. The reader
+    // will show garbage URLs for one frame but at least we get visibility.
+    if (pages.isEmpty) return diag;
 
     return pages;
   }
