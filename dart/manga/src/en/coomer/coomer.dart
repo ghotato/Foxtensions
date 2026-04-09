@@ -13,17 +13,16 @@ class Coomer extends MProvider {
   String get baseUrl => source.baseUrl;
   String get imgCdnUrl => baseUrl.replaceFirst('//', '//img.');
 
-  Map<String, String> get _apiHeaders => {
-    'Referer': '$baseUrl/',
-    'Accept': 'text/css',
-  };
+  Map<String, String> _apiHeaders() {
+    return {'Referer': '$baseUrl/', 'Accept': 'text/css'};
+  }
 
   List<dynamic>? _creatorsCache;
 
   Future<List<dynamic>> _fetchCreators() async {
     if (_creatorsCache != null) return _creatorsCache!;
 
-    final res = await client.get('$baseUrl/api/v1/creators', headers: _apiHeaders);
+    final res = await client.get('$baseUrl/api/v1/creators', headers: _apiHeaders());
     final all = jsonDecode(res.body) as List;
     _creatorsCache = listExclude(all, 'service', ['discord']);
     return _creatorsCache!;
@@ -82,7 +81,7 @@ class Coomer extends MProvider {
       try {
         final profileRes = await client.get(
           '$baseUrl/api/v1/$service/user/$userId/profile',
-          headers: _apiHeaders,
+          headers: _apiHeaders(),
         );
         final profile = jsonDecode(profileRes.body);
         manga.name = (profile['name'] ?? '').toString();
@@ -97,7 +96,7 @@ class Coomer extends MProvider {
     while (hasMore) {
       final res = await client.get(
         '$baseUrl/api/v1$url/posts?o=$offset',
-        headers: _apiHeaders,
+        headers: _apiHeaders(),
       );
       final posts = jsonDecode(res.body) as List;
 
@@ -123,7 +122,7 @@ class Coomer extends MProvider {
 
   @override
   Future<List<dynamic>> getPageList(String url) async {
-    final res = await client.get('$baseUrl/api/v1$url', headers: _apiHeaders);
+    final res = await client.get('$baseUrl/api/v1$url', headers: _apiHeaders());
     final data = jsonDecode(res.body);
 
     final post = data['post'] ?? data;

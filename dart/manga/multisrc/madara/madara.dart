@@ -172,6 +172,7 @@ class Madara extends MProvider {
     final mangaList = <MManga>[];
 
     var elements = doc.select('div.page-item-detail');
+    if (elements.isEmpty) elements = doc.select('div.page-listing-item');
     if (elements.isEmpty) elements = doc.select('.manga__item');
 
     for (final el in elements) {

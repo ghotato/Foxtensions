@@ -13,10 +13,9 @@ class Kemono extends MProvider {
   String get baseUrl => source.baseUrl;
   String get imgCdnUrl => baseUrl.replaceFirst('//', '//img.');
 
-  Map<String, String> get _apiHeaders => {
-    'Referer': '$baseUrl/',
-    'Accept': 'text/css',
-  };
+  Map<String, String> _apiHeaders() {
+    return {'Referer': '$baseUrl/', 'Accept': 'text/css'};
+  }
 
   // Cache parsed creators list (native Dart objects from jsonDecode)
   List<dynamic>? _creatorsCache;
@@ -24,7 +23,7 @@ class Kemono extends MProvider {
   Future<List<dynamic>> _fetchCreators() async {
     if (_creatorsCache != null) return _creatorsCache!;
 
-    final res = await client.get('$baseUrl/api/v1/creators', headers: _apiHeaders);
+    final res = await client.get('$baseUrl/api/v1/creators', headers: _apiHeaders());
 
     // Parse JSON natively (handles 26MB+ in milliseconds)
     final all = jsonDecode(res.body) as List;
@@ -90,7 +89,7 @@ class Kemono extends MProvider {
       try {
         final profileRes = await client.get(
           '$baseUrl/api/v1/$service/user/$userId/profile',
-          headers: _apiHeaders,
+          headers: _apiHeaders(),
         );
         final profile = jsonDecode(profileRes.body);
         manga.name = (profile['name'] ?? '').toString();
@@ -106,7 +105,7 @@ class Kemono extends MProvider {
     while (hasMore) {
       final res = await client.get(
         '$baseUrl/api/v1$url/posts?o=$offset',
-        headers: _apiHeaders,
+        headers: _apiHeaders(),
       );
       final posts = jsonDecode(res.body) as List;
 
@@ -133,7 +132,7 @@ class Kemono extends MProvider {
   @override
   Future<List<dynamic>> getPageList(String url) async {
     // url: /{service}/user/{id}/post/{postId}
-    final res = await client.get('$baseUrl/api/v1$url', headers: _apiHeaders);
+    final res = await client.get('$baseUrl/api/v1$url', headers: _apiHeaders());
     final data = jsonDecode(res.body);
 
     // Response is wrapped: {"post": {...}}

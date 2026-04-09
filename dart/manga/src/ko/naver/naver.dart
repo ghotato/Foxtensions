@@ -11,16 +11,18 @@ class NaverWebtoon extends MProvider {
   String get baseUrl => 'https://comic.naver.com';
   String get mobileUrl => 'https://m.comic.naver.com';
 
-  Map<String, String> get _headers => {
-    'Referer': '$baseUrl/',
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/131.0.0.0 Mobile Safari/537.36',
-  };
+  Map<String, String> _getHeaders() {
+    return {
+      'Referer': '$baseUrl/',
+      'User-Agent': 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/131.0.0.0 Mobile Safari/537.36',
+    };
+  }
 
   @override
   Future<MPages> getPopular(int page) async {
     // Use weekday list sorted by view count
     final url = '$mobileUrl/webtoon/weekday';
-    final res = await client.get(url, headers: _headers);
+    final res = await client.get(url, headers: _getHeaders());
     return _parseHtmlList(Document(res.body));
   }
 
@@ -33,7 +35,7 @@ class NaverWebtoon extends MProvider {
   Future<MPages> search(String query, int page, FilterList filterList) async {
     final q = Uri.encodeComponent(query);
     final url = '$baseUrl/api/search/webtoon?keyword=$q&page=$page';
-    final res = await client.get(url, headers: _headers);
+    final res = await client.get(url, headers: _getHeaders());
     return _parseSearchApi(res.body);
   }
 
@@ -48,7 +50,7 @@ class NaverWebtoon extends MProvider {
 
     // Get manga info from HTML page (og tags)
     final pageUrl = '$mobileUrl/webtoon/list?titleId=$titleId';
-    final pageRes = await client.get(pageUrl, headers: _headers);
+    final pageRes = await client.get(pageUrl, headers: _getHeaders());
     final doc = Document(pageRes.body);
 
     final ogTitle = doc.selectFirst('meta[property=og:title]');
@@ -70,7 +72,7 @@ class NaverWebtoon extends MProvider {
 
     while (hasMore && page <= 100) {
       final apiUrl = '$baseUrl/api/article/list?titleId=$titleId&page=$page';
-      final apiRes = await client.get(apiUrl, headers: _headers);
+      final apiRes = await client.get(apiUrl, headers: _getHeaders());
       final body = apiRes.body;
 
       // Parse articleList from JSON
@@ -110,7 +112,7 @@ class NaverWebtoon extends MProvider {
 
   @override
   Future<List<dynamic>> getPageList(String url) async {
-    final res = await client.get(url, headers: _headers);
+    final res = await client.get(url, headers: _getHeaders());
     final doc = Document(res.body);
     final pages = <String>[];
 

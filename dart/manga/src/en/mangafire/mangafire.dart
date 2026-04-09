@@ -11,13 +11,13 @@ class MangaFire extends MProvider {
 
   String get baseUrl => source.baseUrl;
 
-  Map<String, String> get _headers => {
-    'Referer': '$baseUrl/',
-  };
+  Map<String, String> _getHeaders() {
+    return {'Referer': '$baseUrl/'};
+  }
 
   // ── VRF Crypto ─────────────────────────────────────────────
 
-  static final _rc4Keys = [
+  final _rc4Keys = [
     'FgxyJUQDPUGSzwbAq/ToWn4/e8jYzvabE+dLMb1XU1o=',
     'CQx3CLwswJAnM1VxOqX+y+f3eUns03ulxv8Z+0gUyik=',
     'fAS+otFLkKsKAJzu3yU+rGOlbbFVq+u+LaS6+s1eCJs=',
@@ -25,7 +25,7 @@ class MangaFire extends MProvider {
     'aoDIdXezm2l3HrcnQdkPJTDT8+W6mcl2/02ewBHfPzg=',
   ];
 
-  static final _seeds32 = [
+  final _seeds32 = [
     'yH6MXnMEcDVWO/9a6P9W92BAh1eRLVFxFlWTHUqQ474=',
     'RK7y4dZ0azs9Uqz+bbFB46Bx2K9EHg74ndxknY9uknA=',
     'rqr9HeTQOg8TlFiIGZpJaxcvAaKHwMwrkqojJCpcvoc=',
@@ -33,7 +33,7 @@ class MangaFire extends MProvider {
     'wsSGSBXKWA9q1oDJpjtJddVxH+evCfL5SO9HZnUDFU8=',
   ];
 
-  static final _prefixKeys = [
+  final _prefixKeys = [
     'l9PavRg=',
     'Ml2v7ag1Jg==',
     'i/Va0UxrbMo=',
@@ -138,7 +138,7 @@ class MangaFire extends MProvider {
   }
 
   // Schedules for each of the 5 stages
-  static final _schedules = [
+  final _schedules = [
     ['sub:223','rotr:4','rotr:4','add:234','rotr:7','rotr:2','rotr:7','sub:223','rotr:7','rotr:6'],
     ['add:19','rotr:7','add:19','rotr:6','add:19','rotr:1','add:19','rotr:6','rotr:7','rotr:4'],
     ['sub:223','rotr:1','add:19','sub:223','rotl:2','sub:223','add:19','rotl:1','rotl:2','rotl:1'],
@@ -172,14 +172,14 @@ class MangaFire extends MProvider {
   @override
   Future<MPages> getPopular(int page) async {
     final url = '$baseUrl/filter?keyword=&sort=most_viewed&language%5B%5D=en&page=$page';
-    final res = await client.get(url, headers: _headers);
+    final res = await client.get(url, headers: _getHeaders());
     return _parseList(Document(res.body));
   }
 
   @override
   Future<MPages> getLatestUpdates(int page) async {
     final url = '$baseUrl/filter?keyword=&sort=recently_updated&language%5B%5D=en&page=$page';
-    final res = await client.get(url, headers: _headers);
+    final res = await client.get(url, headers: _getHeaders());
     return _parseList(Document(res.body));
   }
 
@@ -188,14 +188,14 @@ class MangaFire extends MProvider {
     final q = Uri.encodeComponent(query);
     final vrf = _generateVrf(query);
     final url = '$baseUrl/filter?keyword=$q&language%5B%5D=en&page=$page&vrf=$vrf';
-    final res = await client.get(url, headers: _headers);
+    final res = await client.get(url, headers: _getHeaders());
     return _parseList(Document(res.body));
   }
 
   @override
   Future<MManga> getDetail(String url) async {
     final fullUrl = url.startsWith('http') ? url : '$baseUrl$url';
-    final res = await client.get(fullUrl, headers: _headers);
+    final res = await client.get(fullUrl, headers: _getHeaders());
     final doc = Document(res.body);
     final manga = MManga();
 
@@ -290,7 +290,7 @@ class MangaFire extends MProvider {
     // If url is not a numeric ID, load the page to extract the real chapter ID
     if (RegExp(r'^\d+$').firstMatch(chapId) == null) {
       final fullUrl = url.startsWith('http') ? url : '$baseUrl$url';
-      final pageRes = await client.get(fullUrl, headers: _headers);
+      final pageRes = await client.get(fullUrl, headers: _getHeaders());
       // Look for data-id on the reading container
       final idMatch = RegExp('data-id="(\\d+)"').firstMatch(pageRes.body);
       if (idMatch != null) {

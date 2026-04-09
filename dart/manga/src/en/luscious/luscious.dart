@@ -11,16 +11,16 @@ class Luscious extends MProvider {
 
   String get baseUrl => source.baseUrl;
 
-  Map<String, String> get _headers => {
-    'Referer': '$baseUrl/',
-  };
+  Map<String, String> _getHeaders() {
+    return {'Referer': '$baseUrl/'};
+  }
 
   // GraphQL queries sent as GET query parameters
   Future<String> _gql(String operationName, String query, String variables) async {
     final q = Uri.encodeComponent(query);
     final v = Uri.encodeComponent(variables);
     final url = '$baseUrl/graphql/nobatch/?operationName=$operationName&query=$q&variables=$v';
-    final res = await client.get(url, headers: _headers);
+    final res = await client.get(url, headers: _getHeaders());
     return res.body;
   }
 
