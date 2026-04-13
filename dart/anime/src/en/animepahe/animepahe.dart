@@ -1,5 +1,5 @@
-// AnimePahe - anime streaming via animepahe.ru API + Kwik CDN
-// API: https://animepahe.ru/api?m=...
+// AnimePahe - anime streaming via animepahe.pw API + Kwik CDN
+// API: https://animepahe.pw/api?m=...
 
 import 'package:foxlations/bridge_lib.dart';
 
@@ -9,7 +9,7 @@ class AnimePahe extends MProvider {
   MSource source;
   final Client client = Client();
 
-  String get baseUrl => 'https://animepahe.ru';
+  String get baseUrl => 'https://animepahe.pw';
 
   Map<String, String> get _headers => {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',

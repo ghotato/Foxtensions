@@ -160,14 +160,14 @@ class AllAnime extends MProvider {
   }
 
   String _decodeAllAnimeUrl(String encoded) {
-    // AllAnime replaces each char pair XX with char(int('XX', 16))
+    // AllAnime hex-encodes URLs and XORs each byte with 56
     // The encoded string starts with '--' followed by hex pairs
     try {
       final hex = encoded.replaceFirst('--', '');
       final buf = StringBuffer();
       for (var i = 0; i < hex.length - 1; i += 2) {
         final byte = int.parse(hex.substring(i, i + 2), radix: 16);
-        buf.writeCharCode(byte);
+        buf.writeCharCode(byte ^ 56);
       }
       return buf.toString();
     } catch (_) {
