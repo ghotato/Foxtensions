@@ -28,7 +28,9 @@ class NaverWebtoon extends MProvider {
 
   @override
   Future<MPages> getLatestUpdates(int page) async {
-    return getPopular(page);
+    final url = '$mobileUrl/webtoon/weekday?order=update';
+    final res = await client.get(url, headers: _getHeaders());
+    return _parseHtmlList(Document(res.body));
   }
 
   @override
@@ -194,14 +196,18 @@ class NaverWebtoon extends MProvider {
   MPages _parseSearchApi(String body) {
     final mangaList = <MManga>[];
 
-    final objPattern = RegExp(r'\{[^{}]*"titleId"\s*:\s*\d+[^{}]*"titleName"[^{}]*\}', dotAll: true);
-    for (final obj in objPattern.allMatches(body)) {
-      final str = obj.group(0)!;
-      final idMatch = RegExp(r'"titleId"\s*:\s*(\d+)').firstMatch(str);
-      final nameMatch = RegExp(r'"titleName"\s*:\s*"([^"]*)"').firstMatch(str);
-      final imgMatch = RegExp(r'"thumbnailUrl"\s*:\s*"([^"]*)"').firstMatch(str);
+    // Each search result has "titleId" at its top level (not nested).
+    // tagList/communityArtists use "id"/"artistId", not "titleId", so we won't
+    // get false positives. For each "titleId" hit, scan forward for the fields.
+    final titleIdRegex = RegExp(r'"titleId"\s*:\s*(\d+)');
+    for (final idMatch in titleIdRegex.allMatches(body)) {
+      final end = (idMatch.start + 2000).clamp(0, body.length);
+      final window = body.substring(idMatch.start, end);
 
-      if (idMatch != null && nameMatch != null) {
+      final nameMatch = RegExp(r'"titleName"\s*:\s*"([^"]*)"').firstMatch(window);
+      final imgMatch = RegExp(r'"thumbnailUrl"\s*:\s*"([^"]*)"').firstMatch(window);
+
+      if (nameMatch != null) {
         final manga = MManga();
         manga.name = nameMatch.group(1);
         manga.link = '$mobileUrl/webtoon/list?titleId=${idMatch.group(1)}';

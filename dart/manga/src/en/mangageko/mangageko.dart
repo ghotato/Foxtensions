@@ -12,14 +12,14 @@ class MangaGeko extends MProvider {
 
   @override
   Future<MPages> getPopular(int page) async {
-    final url = '$baseUrl/browse-comics/data/?results=$page&sort=popular_weekly';
+    final url = '$baseUrl/browse-comics/data/?page=$page&sort=popular_weekly';
     final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
     return _parseList(res.body);
   }
 
   @override
   Future<MPages> getLatestUpdates(int page) async {
-    final url = '$baseUrl/browse-comics/data/?results=$page&sort=latest';
+    final url = '$baseUrl/browse-comics/data/?page=$page&sort=latest';
     final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
     return _parseList(res.body);
   }
@@ -27,7 +27,7 @@ class MangaGeko extends MProvider {
   @override
   Future<MPages> search(String query, int page, FilterList filterList) async {
     final q = Uri.encodeComponent(query);
-    final url = '$baseUrl/browse-comics/data/?results=$page&sort=popular_weekly&search=$q';
+    final url = '$baseUrl/browse-comics/data/?page=$page&q=$q';
     final res = await client.get(url, headers: {'Referer': '$baseUrl/'});
     return _parseList(res.body);
   }
@@ -147,6 +147,14 @@ class MangaGeko extends MProvider {
     final mangaList = <MManga>[];
 
     // API returns JSON with results_html containing comic-card articles
+    // Extract page/num_pages for hasNextPage
+    int page = 1;
+    int numPages = 1;
+    final pageMatch = RegExp(r'"page"\s*:\s*(\d+)').firstMatch(body);
+    final numPagesMatch = RegExp(r'"num_pages"\s*:\s*(\d+)').firstMatch(body);
+    if (pageMatch != null) page = int.tryParse(pageMatch.group(1)!) ?? 1;
+    if (numPagesMatch != null) numPages = int.tryParse(numPagesMatch.group(1)!) ?? 1;
+
     // Extract the HTML from the JSON response
     String html = body;
     final htmlMatch = RegExp(r'"results_html"\s*:\s*"(.*)"', dotAll: true).firstMatch(body);
@@ -189,7 +197,7 @@ class MangaGeko extends MProvider {
       }
     }
 
-    return MPages(mangaList, mangaList.length >= 20);
+    return MPages(mangaList, page < numPages);
   }
 }
 
